@@ -1,13 +1,13 @@
 @keyframes wave {
-  0% { transform: translateX(0) translateY(0); }
-  50% { transform: translateX(-25%) translateY(-10px); }
-  100% { transform: translateX(0) translateY(0); }
+  0% { transform: translateX(0) translateY(0) scale(1); }
+  50% { transform: translateX(-15%) translateY(-20px) scale(1.1); }
+  100% { transform: translateX(0) translateY(0) scale(1); }
 }
 
 @keyframes wave2 {
-  0% { transform: translateX(0) translateY(0); }
-  50% { transform: translateX(25%) translateY(10px); }
-  100% { transform: translateX(0) translateY(0); }
+  0% { transform: translateX(0) translateY(0) scale(1); }
+  50% { transform: translateX(15%) translateY(20px) scale(0.9); }
+  100% { transform: translateX(0) translateY(0) scale(1); }
 }
 
 .wave-container {
@@ -25,22 +25,22 @@
   top: -50%;
   left: -50%;
   border-radius: 40%;
-  opacity: 0.15;
 }
 
 .wave1 {
-  background: radial-gradient(ellipse at center, #8b0000 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, #8b0000 0%, transparent 60%);
   animation: wave 8s ease-in-out infinite;
+  opacity: 0.6;
 }
 
 .wave2 {
-  background: radial-gradient(ellipse at center, #cc0000 0%, transparent 60%);
+  background: radial-gradient(ellipse at 30% 70%, #cc0000 0%, transparent 50%);
   animation: wave2 12s ease-in-out infinite;
-  opacity: 0.1;
+  opacity: 0.4;
 }
 
 .wave3 {
-  background: radial-gradient(ellipse at center, #ff0000 0%, transparent 50%);
+  background: radial-gradient(ellipse at 70% 30%, #ff0000 0%, transparent 40%);
   animation: wave 6s ease-in-out infinite reverse;
-  opacity: 0.07;
+  opacity: 0.3;
 }
