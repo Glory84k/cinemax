@@ -16,13 +16,14 @@ export default function Admin({ user, onBack }) {
   })
 
   const [avatarForm, setAvatarForm] = useState({
-    serie: 'Breaking Bad', character_id: '', character_name: '', image_url: ''
+    serie: 'Breaking Bad', character_id: '', character_name: ''
   })
 
   useEffect(() => { loadMovies() }, [])
 
   const loadMovies = async () => {
-    const { data } = await supabase.from('movies').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabase.from('movies').select('*').order('created_at', { ascending: false })
+    console.log('loadMovies:', data, error)
     setMovies(data || [])
   }
 
@@ -36,21 +37,19 @@ export default function Admin({ user, onBack }) {
 
   const handleAddMovie = async () => {
     setLoading(true)
-    setMsg('')
-
-    // Convertit automatiquement les liens Google Drive en lien preview
+    setMsg('⏳ Ajout en cours...')
     let videoUrl = form.video_url
     const driveMatch = videoUrl.match(/\/d\/([\w-]+)/)
     if (driveMatch) {
       videoUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`
     }
-
-    const { error } = await supabase.from('movies').insert({
+    const { data, error } = await supabase.from('movies').insert({
       ...form,
       video_url: videoUrl,
       release_year: parseInt(form.release_year) || null,
       duration_min: parseInt(form.duration_min) || null,
     })
+    console.log('insert movie:', data, error)
     if (error) setMsg('❌ ' + error.message)
     else {
       setMsg('✅ Film/Série ajouté !')
@@ -61,43 +60,50 @@ export default function Admin({ user, onBack }) {
   }
 
   const handleDeleteMovie = async (id) => {
-    await supabase.from('movies').delete().eq('id', id)
+    const { error } = await supabase.from('movies').delete().eq('id', id)
+    console.log('delete:', error)
     loadMovies()
   }
 
   const handleUploadCover = async (e, movieId) => {
     const file = e.target.files[0]
     if (!file) return
+    setMsg('⏳ Upload affiche en cours...')
     const path = `covers/${movieId || Date.now()}_${file.name}`
-    const { error } = await supabase.storage.from('covers').upload(path, file, { upsert: true })
-    if (!error) {
-      const { data } = supabase.storage.from('covers').getPublicUrl(path)
-      if (movieId) {
-        await supabase.from('movies').update({ cover_url: data.publicUrl }).eq('id', movieId)
-        loadMovies()
-        setMsg('✅ Affiche mise à jour !')
-      } else {
-        setForm(f => ({ ...f, cover_url: data.publicUrl }))
-        setMsg('✅ Affiche uploadée !')
-      }
+    const { data: uploadData, error } = await supabase.storage.from('covers').upload(path, file, { upsert: true })
+    console.log('upload cover:', uploadData, error)
+    if (error) { setMsg('❌ Upload échoué: ' + error.message); return }
+    const { data } = supabase.storage.from('covers').getPublicUrl(path)
+    if (movieId) {
+      const { error: updateError } = await supabase.from('movies').update({ cover_url: data.publicUrl }).eq('id', movieId)
+      console.log('update cover_url:', updateError)
+      if (updateError) { setMsg('❌ ' + updateError.message); return }
+      loadMovies()
+      setMsg('✅ Affiche mise à jour !')
+    } else {
+      setForm(f => ({ ...f, cover_url: data.publicUrl }))
+      setMsg('✅ Affiche uploadée !')
     }
   }
 
   const handleUploadAvatar = async (e) => {
     const file = e.target.files[0]
     if (!file) return
+    setMsg('⏳ Upload avatar en cours...')
     const path = `avatars/${avatarForm.serie}_${avatarForm.character_id}_${file.name}`
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-    if (!error) {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      await supabase.from('avatar_options').upsert({
-        serie: avatarForm.serie,
-        character_id: avatarForm.character_id,
-        character_name: avatarForm.character_name,
-        image_url: data.publicUrl
-      }, { onConflict: 'character_id' })
-      setMsg('✅ Avatar uploadé !')
-    }
+    const { data: uploadData, error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+    console.log('upload avatar:', uploadData, error)
+    if (error) { setMsg('❌ Upload avatar échoué: ' + error.message); return }
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+    const { error: upsertError } = await supabase.from('avatar_options').upsert({
+      serie: avatarForm.serie,
+      character_id: avatarForm.character_id,
+      character_name: avatarForm.character_name,
+      image_url: data.publicUrl
+    }, { onConflict: 'character_id' })
+    console.log('upsert avatar:', upsertError)
+    if (upsertError) { setMsg('❌ ' + upsertError.message); return }
+    setMsg('✅ Avatar uploadé !')
   }
 
   const inputStyle = {
@@ -131,7 +137,7 @@ export default function Admin({ user, onBack }) {
         </div>
 
         {msg && (
-          <p style={{ color: msg.startsWith('❌') ? '#ff4444' : '#4caf50', marginBottom: '1rem', fontSize: '14px' }}>
+          <p style={{ color: msg.startsWith('❌') ? '#ff4444' : msg.startsWith('⏳') ? '#f9c74f' : '#4caf50', marginBottom: '1rem', fontSize: '14px' }}>
             {msg}
           </p>
         )}
@@ -139,7 +145,6 @@ export default function Admin({ user, onBack }) {
         {tab === 'movies' && (
           <div style={{ background: '#0f0f1a', borderRadius: '16px', padding: '1.5rem', border: '1px solid #1a1a2e' }}>
             <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '1.5rem' }}>➕ Ajouter un film ou une série</h2>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <input style={inputStyle} placeholder="Titre *" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
               <select style={inputStyle} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
@@ -150,36 +155,19 @@ export default function Admin({ user, onBack }) {
               <input style={inputStyle} placeholder="Durée en minutes" value={form.duration_min} onChange={e => setForm(f => ({ ...f, duration_min: e.target.value }))} />
               <input style={inputStyle} placeholder="Catégorie (Action, Drame...)" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
             </div>
+            <textarea style={{ ...inputStyle, height: '80px', resize: 'none' }} placeholder="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
 
-            <textarea
-              style={{ ...inputStyle, height: '80px', resize: 'none' }}
-              placeholder="Description"
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-            />
-
-            {/* Upload affiche */}
             <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px', marginBottom: '10px' }}>
               <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '8px' }}>📸 Affiche du film :</p>
               <input type="file" accept="image/*" onChange={e => handleUploadCover(e, null)} style={{ color: '#aaa', fontSize: '13px' }} />
               {form.cover_url && <img src={form.cover_url} alt="" style={{ width: '80px', borderRadius: '8px', marginTop: '8px', display: 'block' }} />}
             </div>
 
-            {/* Lien vidéo Google Drive */}
             <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '4px' }}>🎬 Lien Google Drive de la vidéo :</p>
-              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>
-                Colle n'importe quel lien Google Drive, la conversion est automatique
-              </p>
-              <input
-                style={inputStyle}
-                placeholder="https://drive.google.com/file/d/XXXX/view?usp=sharing"
-                value={form.video_url}
-                onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))}
-              />
-              {form.video_url && (
-                <p style={{ color: '#4caf50', fontSize: '12px', marginTop: '4px' }}>✅ Lien détecté</p>
-              )}
+              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '4px' }}>🎬 Lien Google Drive :</p>
+              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>Colle n'importe quel lien Google Drive, la conversion est automatique</p>
+              <input style={inputStyle} placeholder="https://drive.google.com/file/d/XXXX/view" value={form.video_url} onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))} />
+              {form.video_url && <p style={{ color: '#4caf50', fontSize: '12px', marginTop: '4px' }}>✅ Lien détecté</p>}
             </div>
 
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
@@ -191,11 +179,8 @@ export default function Admin({ user, onBack }) {
               ))}
             </div>
 
-            <button
-              onClick={handleAddMovie}
-              disabled={loading || !form.title}
-              style={{ ...btnStyle(true), width: '100%', padding: '12px', fontSize: '15px', opacity: !form.title ? 0.5 : 1 }}
-            >
+            <button onClick={handleAddMovie} disabled={loading || !form.title}
+              style={{ ...btnStyle(true), width: '100%', padding: '12px', fontSize: '15px', opacity: !form.title ? 0.5 : 1 }}>
               {loading ? 'Ajout en cours...' : '➕ Ajouter au catalogue'}
             </button>
           </div>
@@ -212,8 +197,8 @@ export default function Admin({ user, onBack }) {
             </select>
             <input style={inputStyle} placeholder="ID du personnage (ex: heisenberg)" value={avatarForm.character_id} onChange={e => setAvatarForm(f => ({ ...f, character_id: e.target.value }))} />
             <input style={inputStyle} placeholder="Nom du personnage (ex: Heisenberg)" value={avatarForm.character_name} onChange={e => setAvatarForm(f => ({ ...f, character_name: e.target.value }))} />
-            <div style={{ marginBottom: '10px' }}>
-              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '6px' }}>📸 Photo du personnage :</p>
+            <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px' }}>
+              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '8px' }}>📸 Photo du personnage :</p>
               <input type="file" accept="image/*" onChange={handleUploadAvatar} style={{ color: '#aaa', fontSize: '13px' }} />
             </div>
           </div>
