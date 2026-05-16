@@ -6,7 +6,6 @@ const ADMIN_EMAIL = 'maximegayardraoux@gmail.com'
 export default function Admin({ user, onBack }) {
   const [tab, setTab] = useState('movies')
   const [movies, setMovies] = useState([])
-  const [avatarsList, setAvatarsList] = useState([])
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
 
