@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
@@ -10,6 +10,7 @@ export default function Admin({ user, onBack }) {
   const [msg, setMsg] = useState('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
+  const progressInterval = useRef(null)
 
   const [form, setForm] = useState({
     title: '', description: '', release_year: '', duration_min: '',
@@ -34,6 +35,29 @@ export default function Admin({ user, onBack }) {
         <p style={{ color: '#ff2d55', fontSize: '20px' }}>⛔ Accès refusé</p>
       </div>
     )
+  }
+
+  const startFakeProgress = () => {
+    setUploadProgress(0)
+    // Monte rapidement jusqu'à 90%, puis s'arrête et attend la fin réelle
+    progressInterval.current = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval.current)
+          return 90
+        }
+        return prev + Math.random() * 8
+      })
+    }, 400)
+  }
+
+  const finishProgress = () => {
+    clearInterval(progressInterval.current)
+    setUploadProgress(100)
+    setTimeout(() => {
+      setUploadProgress(0)
+      setUploading(false)
+    }, 800)
   }
 
   const handleAddMovie = async () => {
@@ -86,26 +110,23 @@ export default function Admin({ user, onBack }) {
     }
 
     setUploading(true)
-    setUploadProgress(0)
     setMsg('⏳ Upload en cours, ne ferme pas la page...')
+    startFakeProgress()
 
     const path = `videos/${Date.now()}_${file.name}`
 
-    const { error } = await supabase.storage.from('videos').upload(path, file, {
-      upsert: true,
-      onUploadProgress: (progress) => {
-        const percent = Math.round((progress.loaded / progress.total) * 100)
-        setUploadProgress(percent)
-      }
-    })
+    const { error } = await supabase.storage.from('videos').upload(path, file, { upsert: true })
 
     if (error) {
-      setMsg('❌ Erreur upload vidéo : ' + error.message)
+      clearInterval(progressInterval.current)
+      setUploadProgress(0)
       setUploading(false)
+      setMsg('❌ Erreur upload vidéo : ' + error.message)
       return
     }
 
     const { data } = supabase.storage.from('videos').getPublicUrl(path)
+    finishProgress()
 
     if (movieId) {
       await supabase.from('movies').update({ video_url: data.publicUrl }).eq('id', movieId)
@@ -115,9 +136,6 @@ export default function Admin({ user, onBack }) {
       setForm(f => ({ ...f, video_url: data.publicUrl }))
       setMsg('✅ Vidéo uploadée ! Tu peux maintenant ajouter le film.')
     }
-
-    setUploading(false)
-    setUploadProgress(0)
   }
 
   const handleUploadAvatar = async (e) => {
@@ -176,7 +194,7 @@ export default function Admin({ user, onBack }) {
         {tab === 'movies' && (
           <div style={{ background: '#0f0f1a', borderRadius: '16px', padding: '1.5rem', border: '1px solid #1a1a2e' }}>
             <h2 style={{ color: '#fff', fontSize: '18px', marginBottom: '1.5rem' }}>➕ Ajouter un film ou une série</h2>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <input style={inputStyle} placeholder="Titre *" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
               <select style={inputStyle} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
@@ -200,7 +218,7 @@ export default function Admin({ user, onBack }) {
             {/* Upload vidéo */}
             <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
               <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '4px' }}>🎬 Fichier vidéo (mp4, mkv...) :</p>
-              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>Le fichier sera uploadé sur Supabase Storage</p>
+              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>Uploadé directement sur Supabase Storage</p>
               <input
                 type="file"
                 accept="video/*"
@@ -212,10 +230,16 @@ export default function Admin({ user, onBack }) {
                 <div style={{ marginTop: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ color: '#aaa', fontSize: '12px' }}>Upload en cours...</span>
-                    <span style={{ color: '#ff2d55', fontSize: '12px', fontWeight: '700' }}>{uploadProgress}%</span>
+                    <span style={{ color: '#ff2d55', fontSize: '12px', fontWeight: '700' }}>{Math.round(uploadProgress)}%</span>
                   </div>
                   <div style={{ height: '6px', background: '#2a2a3e', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${uploadProgress}%`, background: 'linear-gradient(90deg, #ff2d55, #ff6b35)', borderRadius: '3px', transition: 'width 0.3s' }} />
+                    <div style={{
+                      height: '100%',
+                      width: `${uploadProgress}%`,
+                      background: uploadProgress === 100 ? '#4caf50' : 'linear-gradient(90deg, #ff2d55, #ff6b35)',
+                      borderRadius: '3px',
+                      transition: 'width 0.4s ease'
+                    }} />
                   </div>
                 </div>
               )}
