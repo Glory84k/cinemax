@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { getTrending, getPopular, getNewReleases } from '../lib/api'
-import { AvatarBubble } from './Profile'   // ← import du composant avatar
 
 const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
 
@@ -8,6 +7,30 @@ const placeholderColors = ['#1a1a2e','#16213e','#0f3460','#533483','#2b2d42','#e
 
 function getColor(id) {
   return placeholderColors[id % placeholderColors.length]
+}
+
+function AvatarBubble({ profile, size = 34 }) {
+  const fontSize = size * 0.38
+  if (profile?.avatar_image_url) {
+    return (
+      <img
+        src={profile.avatar_image_url}
+        alt={profile.avatar_name || 'Avatar'}
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,45,85,0.7)', flexShrink: 0 }}
+      />
+    )
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      background: profile?.avatar_color || '#333',
+      border: '2px solid rgba(255,45,85,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize, fontWeight: '700', color: '#fff', fontFamily: "'Poppins', sans-serif",
+    }}>
+      {profile?.avatar_initials || '?'}
+    </div>
+  )
 }
 
 function MovieCard({ movie, index, onClick, onPlay }) {
@@ -38,14 +61,12 @@ function MovieCard({ movie, index, onClick, onPlay }) {
             <p style={{ color: '#aaa', fontSize: '10px', margin: '0 0 6px' }}>{movie.release_year} • {movie.duration_min}min</p>
             <div style={{ display: 'flex', gap: '6px' }}>
               {movie.video_url && (
-                <button
-                  onClick={e => { e.stopPropagation(); onPlay(movie) }}
+                <button onClick={e => { e.stopPropagation(); onPlay(movie) }}
                   style={{ background: '#ff2d55', border: 'none', borderRadius: '6px', color: '#fff', padding: '4px 10px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' }}>
                   ▶ Regarder
                 </button>
               )}
-              <button
-                onClick={e => { e.stopPropagation(); onClick(movie) }}
+              <button onClick={e => { e.stopPropagation(); onClick(movie) }}
                 style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', padding: '4px 10px', fontSize: '10px', cursor: 'pointer' }}>
                 ℹ️ Infos
               </button>
@@ -118,8 +139,7 @@ function HeroSlider({ movies, onPlay }) {
         <p style={{ color: '#aaa', fontSize: '13px', maxWidth: '420px', marginBottom: '1.5rem', lineHeight: 1.6 }}>{movie.description?.slice(0, 120)}...</p>
         <div style={{ display: 'flex', gap: '10px' }}>
           {movie.video_url && (
-            <button
-              onClick={() => onPlay(movie)}
+            <button onClick={() => onPlay(movie)}
               style={{ background: '#ff2d55', border: 'none', borderRadius: '10px', color: '#fff', padding: '10px 24px', fontSize: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif" }}>
               ▶ Regarder
             </button>
@@ -138,31 +158,23 @@ function HeroSlider({ movies, onPlay }) {
 
 function VideoPlayer({ movie, onClose }) {
   return (
-    <div
-      onClick={onClose}
+    <div onClick={onClose}
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.96)', zIndex: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif" }}>
-      <div
-        onClick={e => e.stopPropagation()}
+      <div onClick={e => e.stopPropagation()}
         style={{ width: '90%', maxWidth: '960px', background: '#0f0f1a', borderRadius: '16px', overflow: 'hidden', border: '1px solid #ff2d55' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#0a0a0f' }}>
           <div>
             <h2 style={{ color: '#fff', margin: 0, fontSize: '18px', fontWeight: '700' }}>{movie.title}</h2>
             <p style={{ color: '#aaa', margin: 0, fontSize: '12px' }}>{movie.release_year} • {movie.duration_min}min • {movie.type === 'series' ? 'Série' : 'Film'}</p>
           </div>
-          <button
-            onClick={onClose}
+          <button onClick={onClose}
             style={{ background: 'transparent', border: '1px solid #ff2d55', borderRadius: '8px', color: '#ff2d55', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontFamily: "'Poppins', sans-serif" }}>
             ✕ Fermer
           </button>
         </div>
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000' }}>
-          <iframe
-            src={movie.video_url}
-            title={movie.title}
-            allow="autoplay; fullscreen"
-            allowFullScreen
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-          />
+          <iframe src={movie.video_url} title={movie.title} allow="autoplay; fullscreen" allowFullScreen
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
         </div>
         {movie.description && (
           <div style={{ padding: '1rem 1.5rem' }}>
@@ -174,9 +186,6 @@ function VideoPlayer({ movie, onClose }) {
   )
 }
 
-// ─────────────────────────────────────────────
-// Composant principal
-// ─────────────────────────────────────────────
 export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
   const [trending, setTrending]       = useState([])
   const [popular, setPopular]         = useState([])
@@ -188,9 +197,13 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
 
   useEffect(() => {
     const load = async () => {
-      const [t, p, n] = await Promise.all([getTrending(), getPopular(), getNewReleases()])
-      setTrending(t); setPopular(p); setNewReleases(n)
-      setLoading(false)
+      try {
+        const [t, p, n] = await Promise.all([getTrending(), getPopular(), getNewReleases()])
+        setTrending(t); setPopular(p); setNewReleases(n)
+      } catch (_) {
+      } finally {
+        setLoading(false)
+      }
     }
     load()
     const onScroll = () => setNavScrolled(window.scrollY > 40)
@@ -205,38 +218,29 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
         ::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {playingMovie && (
-        <VideoPlayer movie={playingMovie} onClose={() => setPlayingMovie(null)} />
-      )}
+      {playingMovie && <VideoPlayer movie={playingMovie} onClose={() => setPlayingMovie(null)} />}
 
-      {/* ── Navbar ── */}
+      {/* Navbar */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        padding: '0.9rem 2rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: navScrolled
-          ? 'rgba(10,10,15,0.96)'
-          : 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)',
+        padding: '0.9rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: navScrolled ? 'rgba(10,10,15,0.97)' : 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)',
         backdropFilter: navScrolled ? 'blur(10px)' : 'none',
-        transition: 'background 0.3s, backdrop-filter 0.3s',
+        transition: 'background 0.3s',
         borderBottom: navScrolled ? '1px solid rgba(255,45,85,0.08)' : 'none',
       }}>
-        {/* Logo */}
         <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '800', margin: 0 }}>
           Cine<span style={{ color: '#ff2d55' }}>max</span>
         </h1>
 
-        {/* Côté droit */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {user?.email === ADMIN_EMAIL && (
-            <button onClick={onAdmin} style={{
-              background: '#ff2d55', border: 'none', borderRadius: '8px',
-              color: '#fff', padding: '6px 14px', cursor: 'pointer',
-              fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600'
-            }}>⚙️ Admin</button>
+            <button onClick={onAdmin} style={{ background: '#ff2d55', border: 'none', borderRadius: '8px', color: '#fff', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>
+              ⚙️ Admin
+            </button>
           )}
 
-          {/* Bouton profil — avatar + nom */}
+          {/* Bouton profil avec avatar */}
           <button
             onClick={onProfile}
             style={{
@@ -244,10 +248,10 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
               background: 'rgba(255,255,255,0.06)',
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '24px', padding: '4px 12px 4px 4px',
-              cursor: 'pointer', transition: 'all 0.2s',
-              fontFamily: "'Poppins', sans-serif",
+              cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+              transition: 'background 0.2s',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.12)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.15)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
           >
             <AvatarBubble profile={profile} size={30} />
@@ -256,11 +260,7 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
             </span>
           </button>
 
-          <button onClick={onLogout} style={{
-            background: 'transparent', border: '1px solid #ff2d55',
-            borderRadius: '8px', color: '#ff2d55', padding: '6px 14px',
-            cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif"
-          }}>
+          <button onClick={onLogout} style={{ background: 'transparent', border: '1px solid #ff2d55', borderRadius: '8px', color: '#ff2d55', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif" }}>
             Déconnexion
           </button>
         </div>
@@ -274,7 +274,6 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
         <MovieRow title="🆕 Nouveautés" movies={newReleases} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
       </div>
 
-      {/* Modal infos film */}
       {selectedMovie && (
         <div onClick={() => setSelectedMovie(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#0f0f1a', borderRadius: '16px', padding: '2rem', maxWidth: '480px', width: '90%', border: '1px solid #ff2d55' }}>
@@ -282,8 +281,7 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
             <p style={{ color: '#aaa', fontSize: '12px', marginBottom: '1rem' }}>{selectedMovie.release_year} • {selectedMovie.duration_min}min • {selectedMovie.type === 'series' ? 'Série' : 'Film'}</p>
             <p style={{ color: '#ccc', fontSize: '13px', marginBottom: '1.5rem', lineHeight: 1.6 }}>{selectedMovie.description || 'Aucune description.'}</p>
             {selectedMovie.video_url ? (
-              <button
-                onClick={() => { setSelectedMovie(null); setPlayingMovie(selectedMovie) }}
+              <button onClick={() => { setSelectedMovie(null); setPlayingMovie(selectedMovie) }}
                 style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '10px', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '15px', fontFamily: "'Poppins', sans-serif" }}>
                 ▶ Regarder maintenant
               </button>
