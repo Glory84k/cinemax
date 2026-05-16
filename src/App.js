@@ -160,7 +160,9 @@ function App() {
   const handleAvatarSelect = async (avatar) => {
     const userId = pendingUser?.id || user?.id
     await supabase.from('profiles').upsert({
-      id: userId, avatar_id: avatar.id, avatar_name: avatar.name,
+      id: userId,
+      avatar_id: avatar.id,
+      avatar_name: avatar.name,
       avatar_color: avatar.color || '#1a1a2e',
       avatar_initials: avatar.initials,
       avatar_image_url: avatar.image_url || null,
@@ -192,7 +194,6 @@ function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", position: 'relative' }}>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" />
       <div className="wave-container">
         <div className="wave wave1"></div>
         <div className="wave wave2"></div>
