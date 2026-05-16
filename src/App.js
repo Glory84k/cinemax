@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import './App.css'
 import Home from './pages/Home'
+import Admin from './pages/Admin'
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -49,7 +50,36 @@ const avatars = {
 function AvatarPicker({ onSelect }) {
   const [activeSerie, setActiveSerie] = useState('Breaking Bad')
   const [selected, setSelected] = useState(null)
+  const [avatarOptions, setAvatarOptions] = useState({})
   const series = Object.keys(avatars.Netflix)
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from('avatar_options').select('*')
+      if (data && data.length > 0) {
+        const grouped = {}
+        data.forEach(a => {
+          if (!grouped[a.serie]) grouped[a.serie] = []
+          grouped[a.serie].push(a)
+        })
+        setAvatarOptions(grouped)
+      }
+    }
+    load()
+  }, [])
+
+  const getAvatars = (serie) => {
+    if (avatarOptions[serie] && avatarOptions[serie].length > 0) {
+      return avatarOptions[serie].map(a => ({
+        id: a.character_id,
+        name: a.character_name,
+        image_url: a.image_url,
+        initials: a.character_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+        color: '#1a1a2e'
+      }))
+    }
+    return avatars.Netflix[serie] || []
+  }
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, fontFamily: "'Poppins', sans-serif" }}>
@@ -65,18 +95,20 @@ function AvatarPicker({ onSelect }) {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}>
-          {avatars.Netflix[activeSerie].map(avatar => (
+          {getAvatars(activeSerie).map(avatar => (
             <div key={avatar.id} onClick={() => setSelected(avatar)}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <div style={{
-                width: '70px', height: '70px', borderRadius: '50%',
-                background: avatar.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '22px', fontWeight: '700', color: '#fff',
+                width: '70px', height: '70px', borderRadius: '50%', overflow: 'hidden',
                 border: selected?.id === avatar.id ? '3px solid #ff2d55' : '3px solid transparent',
                 transform: selected?.id === avatar.id ? 'scale(1.12)' : 'scale(1)',
-                transition: 'all 0.2s', boxShadow: selected?.id === avatar.id ? '0 0 20px #ff2d5566' : 'none'
+                transition: 'all 0.2s', boxShadow: selected?.id === avatar.id ? '0 0 20px #ff2d5566' : 'none',
+                background: avatar.color, display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
-                {avatar.initials}
+                {avatar.image_url
+                  ? <img src={avatar.image_url} alt={avatar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: '22px', fontWeight: '700', color: '#fff' }}>{avatar.initials}</span>
+                }
               </div>
               <span style={{ color: selected?.id === avatar.id ? '#ff2d55' : '#aaa', fontSize: '11px', textAlign: 'center', maxWidth: '75px' }}>{avatar.name}</span>
             </div>
@@ -100,6 +132,7 @@ function App() {
   const [pendingUser, setPendingUser] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showAdmin, setShowAdmin] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -128,7 +161,9 @@ function App() {
     const userId = pendingUser?.id || user?.id
     await supabase.from('profiles').upsert({
       id: userId, avatar_id: avatar.id, avatar_name: avatar.name,
-      avatar_color: avatar.color, avatar_initials: avatar.initials,
+      avatar_color: avatar.color || '#1a1a2e',
+      avatar_initials: avatar.initials,
+      avatar_image_url: avatar.image_url || null,
     })
     setShowAvatarPicker(false)
   }
@@ -136,6 +171,7 @@ function App() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setUser(null)
+    setShowAdmin(false)
   }
 
   if (loading) return (
@@ -147,7 +183,10 @@ function App() {
   if (user) return (
     <>
       {showAvatarPicker && <AvatarPicker onSelect={handleAvatarSelect} />}
-      <Home user={user} onLogout={handleLogout} />
+      {showAdmin
+        ? <Admin user={user} onBack={() => setShowAdmin(false)} />
+        : <Home user={user} onLogout={handleLogout} onAdmin={() => setShowAdmin(true)} />
+      }
     </>
   )
 
@@ -170,13 +209,13 @@ function App() {
           <button onClick={() => setIsLogin(true)} style={{ flex: 1, padding: '10px', background: isLogin ? '#ff2d55' : 'transparent', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Poppins', sans-serif", fontSize: '14px' }}>Connexion</button>
           <button onClick={() => setIsLogin(false)} style={{ flex: 1, padding: '10px', background: !isLogin ? '#ff2d55' : 'transparent', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Poppins', sans-serif", fontSize: '14px' }}>Inscription</button>
         </div>
-        <input type="email" placeholder="📧 Ton email" value={email} onChange={e => setEmail(e.target.value)}
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}
           style={{ width: '100%', padding: '14px 16px', marginBottom: '12px', background: '#1a1a2e', border: '1px solid #2a2a3e', borderRadius: '12px', color: '#fff', boxSizing: 'border-box', fontFamily: "'Poppins', sans-serif", fontSize: '14px', outline: 'none' }} />
-        <input type="password" placeholder="🔒 Mot de passe" value={password} onChange={e => setPassword(e.target.value)}
+        <input type="password" placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAuth()}
           style={{ width: '100%', padding: '14px 16px', marginBottom: '16px', background: '#1a1a2e', border: '1px solid #2a2a3e', borderRadius: '12px', color: '#fff', boxSizing: 'border-box', fontFamily: "'Poppins', sans-serif", fontSize: '14px', outline: 'none' }} />
         <button onClick={handleAuth}
-          style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '16px', fontFamily: "'Poppins', sans-serif', boxShadow: '0 4px 20px rgba(255,45,85,0.4)'" }}>
+          style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '16px', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 20px rgba(255,45,85,0.4)' }}>
           {isLogin ? '🚀 Se connecter' : '✨ Créer mon compte'}
         </button>
         {message && <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '13px', color: message.startsWith('❌') ? '#ff4444' : '#4caf50' }}>{message}</p>}
