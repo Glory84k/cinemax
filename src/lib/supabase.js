@@ -8,16 +8,11 @@ export const supabase = createClient(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: false,
-    },
-    db: {
-      schema: 'public',
-    },
-    global: {
-      headers: { 'x-my-custom-header': 'cinemax' },
+      storageKey: 'cinemax-auth',
     },
     realtime: {
       params: {
-        eventsPerSecond: 2,
+        eventsPerSecond: 1,
       },
     },
   }
