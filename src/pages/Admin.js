@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
@@ -8,9 +8,6 @@ export default function Admin({ user, onBack }) {
   const [movies, setMovies] = useState([])
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploading, setUploading] = useState(false)
-  const progressInterval = useRef(null)
 
   const [form, setForm] = useState({
     title: '', description: '', release_year: '', duration_min: '',
@@ -37,34 +34,20 @@ export default function Admin({ user, onBack }) {
     )
   }
 
-  const startFakeProgress = () => {
-    setUploadProgress(0)
-    // Monte rapidement jusqu'à 90%, puis s'arrête et attend la fin réelle
-    progressInterval.current = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval.current)
-          return 90
-        }
-        return prev + Math.random() * 8
-      })
-    }, 400)
-  }
-
-  const finishProgress = () => {
-    clearInterval(progressInterval.current)
-    setUploadProgress(100)
-    setTimeout(() => {
-      setUploadProgress(0)
-      setUploading(false)
-    }, 800)
-  }
-
   const handleAddMovie = async () => {
     setLoading(true)
     setMsg('')
+
+    // Convertit automatiquement les liens Google Drive en lien preview
+    let videoUrl = form.video_url
+    const driveMatch = videoUrl.match(/\/d\/([\w-]+)/)
+    if (driveMatch) {
+      videoUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`
+    }
+
     const { error } = await supabase.from('movies').insert({
       ...form,
+      video_url: videoUrl,
       release_year: parseInt(form.release_year) || null,
       duration_min: parseInt(form.duration_min) || null,
     })
@@ -97,44 +80,6 @@ export default function Admin({ user, onBack }) {
         setForm(f => ({ ...f, cover_url: data.publicUrl }))
         setMsg('✅ Affiche uploadée !')
       }
-    }
-  }
-
-  const handleUploadVideo = async (e, movieId) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    if (!file.type.startsWith('video/')) {
-      setMsg('❌ Le fichier doit être une vidéo (mp4, mkv...)')
-      return
-    }
-
-    setUploading(true)
-    setMsg('⏳ Upload en cours, ne ferme pas la page...')
-    startFakeProgress()
-
-    const path = `videos/${Date.now()}_${file.name}`
-
-    const { error } = await supabase.storage.from('videos').upload(path, file, { upsert: true })
-
-    if (error) {
-      clearInterval(progressInterval.current)
-      setUploadProgress(0)
-      setUploading(false)
-      setMsg('❌ Erreur upload vidéo : ' + error.message)
-      return
-    }
-
-    const { data } = supabase.storage.from('videos').getPublicUrl(path)
-    finishProgress()
-
-    if (movieId) {
-      await supabase.from('movies').update({ video_url: data.publicUrl }).eq('id', movieId)
-      loadMovies()
-      setMsg('✅ Vidéo mise à jour !')
-    } else {
-      setForm(f => ({ ...f, video_url: data.publicUrl }))
-      setMsg('✅ Vidéo uploadée ! Tu peux maintenant ajouter le film.')
     }
   }
 
@@ -186,7 +131,7 @@ export default function Admin({ user, onBack }) {
         </div>
 
         {msg && (
-          <p style={{ color: msg.startsWith('❌') ? '#ff4444' : msg.startsWith('⏳') ? '#f9c74f' : '#4caf50', marginBottom: '1rem', fontSize: '14px' }}>
+          <p style={{ color: msg.startsWith('❌') ? '#ff4444' : '#4caf50', marginBottom: '1rem', fontSize: '14px' }}>
             {msg}
           </p>
         )}
@@ -206,7 +151,12 @@ export default function Admin({ user, onBack }) {
               <input style={inputStyle} placeholder="Catégorie (Action, Drame...)" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
             </div>
 
-            <textarea style={{ ...inputStyle, height: '80px', resize: 'none' }} placeholder="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+            <textarea
+              style={{ ...inputStyle, height: '80px', resize: 'none' }}
+              placeholder="Description"
+              value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            />
 
             {/* Upload affiche */}
             <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px', marginBottom: '10px' }}>
@@ -215,36 +165,20 @@ export default function Admin({ user, onBack }) {
               {form.cover_url && <img src={form.cover_url} alt="" style={{ width: '80px', borderRadius: '8px', marginTop: '8px', display: 'block' }} />}
             </div>
 
-            {/* Upload vidéo */}
+            {/* Lien vidéo Google Drive */}
             <div style={{ background: '#1a1a2e', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '4px' }}>🎬 Fichier vidéo (mp4, mkv...) :</p>
-              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>Uploadé directement sur Supabase Storage</p>
+              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '4px' }}>🎬 Lien Google Drive de la vidéo :</p>
+              <p style={{ color: '#555', fontSize: '11px', marginBottom: '8px' }}>
+                Colle n'importe quel lien Google Drive, la conversion est automatique
+              </p>
               <input
-                type="file"
-                accept="video/*"
-                onChange={e => handleUploadVideo(e, null)}
-                disabled={uploading}
-                style={{ color: '#aaa', fontSize: '13px' }}
+                style={inputStyle}
+                placeholder="https://drive.google.com/file/d/XXXX/view?usp=sharing"
+                value={form.video_url}
+                onChange={e => setForm(f => ({ ...f, video_url: e.target.value }))}
               />
-              {uploading && (
-                <div style={{ marginTop: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ color: '#aaa', fontSize: '12px' }}>Upload en cours...</span>
-                    <span style={{ color: '#ff2d55', fontSize: '12px', fontWeight: '700' }}>{Math.round(uploadProgress)}%</span>
-                  </div>
-                  <div style={{ height: '6px', background: '#2a2a3e', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${uploadProgress}%`,
-                      background: uploadProgress === 100 ? '#4caf50' : 'linear-gradient(90deg, #ff2d55, #ff6b35)',
-                      borderRadius: '3px',
-                      transition: 'width 0.4s ease'
-                    }} />
-                  </div>
-                </div>
-              )}
-              {form.video_url && !uploading && (
-                <p style={{ color: '#4caf50', fontSize: '12px', marginTop: '8px' }}>✅ Vidéo prête</p>
+              {form.video_url && (
+                <p style={{ color: '#4caf50', fontSize: '12px', marginTop: '4px' }}>✅ Lien détecté</p>
               )}
             </div>
 
@@ -257,9 +191,12 @@ export default function Admin({ user, onBack }) {
               ))}
             </div>
 
-            <button onClick={handleAddMovie} disabled={loading || !form.title || uploading}
-              style={{ ...btnStyle(true), width: '100%', padding: '12px', fontSize: '15px', opacity: (!form.title || uploading) ? 0.5 : 1 }}>
-              {loading ? 'Ajout en cours...' : uploading ? "⏳ Attends la fin de l'upload..." : '➕ Ajouter au catalogue'}
+            <button
+              onClick={handleAddMovie}
+              disabled={loading || !form.title}
+              style={{ ...btnStyle(true), width: '100%', padding: '12px', fontSize: '15px', opacity: !form.title ? 0.5 : 1 }}
+            >
+              {loading ? 'Ajout en cours...' : '➕ Ajouter au catalogue'}
             </button>
           </div>
         )}
@@ -309,10 +246,6 @@ export default function Admin({ user, onBack }) {
                       <label style={{ color: '#aaa', fontSize: '11px', cursor: 'pointer' }}>
                         🖼 Changer affiche
                         <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleUploadCover(e, m.id)} />
-                      </label>
-                      <label style={{ color: '#aaa', fontSize: '11px', cursor: 'pointer' }}>
-                        🎬 Changer vidéo
-                        <input type="file" accept="video/*" style={{ display: 'none' }} onChange={e => handleUploadVideo(e, m.id)} />
                       </label>
                       <button onClick={() => handleDeleteMovie(m.id)}
                         style={{ background: 'transparent', border: '1px solid #ff2d55', borderRadius: '6px', color: '#ff2d55', padding: '4px 10px', cursor: 'pointer', fontSize: '12px' }}>
