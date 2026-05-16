@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const ADMIN_EMAIL = 'maximegayardraoux@gmail.com'
+const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
 
 export default function Admin({ user, onBack }) {
   const [tab, setTab] = useState('movies')

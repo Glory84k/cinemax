@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTrending, getPopular, getNewReleases } from '../lib/api'
 
-const ADMIN_EMAIL = 'maximegayardraoux@gmail.com'
+const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
 
 const placeholderColors = ['#1a1a2e','#16213e','#0f3460','#533483','#2b2d42','#e63946','#457b9d','#2d6a4f','#f4a261']
 
