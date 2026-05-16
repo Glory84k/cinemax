@@ -129,9 +129,9 @@ function App() {
   const [message, setMessage]   = useState('')
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
   const [pendingUser, setPendingUser]           = useState(null)
-  const [user, setUser]       = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [page, setPage]       = useState('home')
+  const [user, setUser]         = useState(undefined)
+  const [profile, setProfile]   = useState(null)
+  const [page, setPage]         = useState('home')
 
   const loadProfile = async (userId) => {
     try {
@@ -150,13 +150,14 @@ function App() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u) await loadProfile(u.id)
-    })
+      if (u) loadProfile(u.id)
+    }).catch(() => setUser(null))
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const u = session?.user ?? null
       setUser(u)
-      if (u) await loadProfile(u.id)
+      if (u) loadProfile(u.id)
+      else setProfile(null)
     })
 
     return () => subscription.unsubscribe()
@@ -192,11 +193,16 @@ function App() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    try {
+      await supabase.auth.signOut()
+    } catch (_) {}
     setUser(null)
     setProfile(null)
     setPage('home')
+    localStorage.removeItem('cinemax-auth')
   }
+
+  if (user === undefined) return null
 
   if (!user) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", position: 'relative' }}>

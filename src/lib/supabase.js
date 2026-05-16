@@ -9,6 +9,7 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: false,
       storageKey: 'cinemax-auth',
+      storage: window.localStorage,
     },
     realtime: {
       params: {
