@@ -9,13 +9,16 @@ export const supabase = createClient(
       autoRefreshToken: true,
       detectSessionInUrl: false,
     },
+    db: {
+      schema: 'public',
+    },
     global: {
-      fetch: (...args) => {
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 10000)
-        return fetch(...args, { signal: controller.signal })
-          .finally(() => clearTimeout(timeout))
-      }
-    }
+      headers: { 'x-my-custom-header': 'cinemax' },
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2,
+      },
+    },
   }
 )
