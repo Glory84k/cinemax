@@ -3,50 +3,54 @@ import { createClient } from '@supabase/supabase-js'
 import './App.css'
 import Home from './pages/Home'
 import Admin from './pages/Admin'
+import Profile from './pages/Profile'
 
+// ── Un seul client Supabase pour toute l'app ──────────────────────────────
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.REACT_APP_SUPABASE_ANON_KEY
 )
 
+// ── Avatars locaux de fallback ────────────────────────────────────────────
 const avatars = {
   Netflix: {
-    "Breaking Bad": [
-      { id: "walter_white", initials: "WW", name: "Walter White", color: "#2d6a4f" },
-      { id: "heisenberg", initials: "HB", name: "Heisenberg", color: "#1a1a1a" },
-      { id: "jesse", initials: "JP", name: "Jesse Pinkman", color: "#457b9d" },
-      { id: "gus", initials: "GF", name: "Gus Fring", color: "#e63946" },
-      { id: "hank", initials: "HS", name: "Hank", color: "#f4a261" },
-      { id: "walter_jr", initials: "WJ", name: "Walter Jr.", color: "#6d6875" },
-      { id: "skyler", initials: "SW", name: "Skyler", color: "#a8dadc" },
-      { id: "marie", initials: "MH", name: "Marie Schrader", color: "#9b5de5" },
+    'Breaking Bad': [
+      { id: 'walter_white', initials: 'WW', name: 'Walter White', color: '#2d6a4f' },
+      { id: 'heisenberg',   initials: 'HB', name: 'Heisenberg',   color: '#1a1a1a' },
+      { id: 'jesse',        initials: 'JP', name: 'Jesse Pinkman', color: '#457b9d' },
+      { id: 'gus',          initials: 'GF', name: 'Gus Fring',     color: '#e63946' },
+      { id: 'hank',         initials: 'HS', name: 'Hank',          color: '#f4a261' },
+      { id: 'walter_jr',    initials: 'WJ', name: 'Walter Jr.',    color: '#6d6875' },
+      { id: 'skyler',       initials: 'SW', name: 'Skyler',        color: '#a8dadc' },
+      { id: 'marie',        initials: 'MH', name: 'Marie Schrader', color: '#9b5de5' },
     ],
-    "La Casa de Papel": [
-      { id: "professor", initials: "PR", name: "Le Professeur", color: "#e63946" },
-      { id: "tokyo", initials: "TK", name: "Tokyo", color: "#ff6b6b" },
-      { id: "berlin", initials: "BL", name: "Berlin", color: "#343a40" },
-      { id: "nairobi", initials: "NB", name: "Nairobi", color: "#f9c74f" },
-      { id: "denver", initials: "DV", name: "Denver", color: "#4cc9f0" },
-      { id: "rio", initials: "RO", name: "Rio", color: "#06d6a0" },
+    'La Casa de Papel': [
+      { id: 'professor', initials: 'PR', name: 'Le Professeur', color: '#e63946' },
+      { id: 'tokyo',     initials: 'TK', name: 'Tokyo',         color: '#ff6b6b' },
+      { id: 'berlin',    initials: 'BL', name: 'Berlin',        color: '#343a40' },
+      { id: 'nairobi',   initials: 'NB', name: 'Nairobi',       color: '#f9c74f' },
+      { id: 'denver',    initials: 'DV', name: 'Denver',        color: '#4cc9f0' },
+      { id: 'rio',       initials: 'RO', name: 'Rio',           color: '#06d6a0' },
     ],
-    "Squid Game": [
-      { id: "gi_hun", initials: "GH", name: "Gi-hun", color: "#e63946" },
-      { id: "sang_woo", initials: "SW", name: "Sang-woo", color: "#2b2d42" },
-      { id: "sae_byeok", initials: "SB", name: "Sae-byeok", color: "#457b9d" },
-      { id: "frontman", initials: "FM", name: "Frontman", color: "#111" },
-      { id: "ali", initials: "AL", name: "Ali", color: "#06d6a0" },
-      { id: "deok_su", initials: "DS", name: "Deok-su", color: "#f4a261" },
+    'Squid Game': [
+      { id: 'gi_hun',   initials: 'GH', name: 'Gi-hun',   color: '#e63946' },
+      { id: 'sang_woo', initials: 'SW', name: 'Sang-woo', color: '#2b2d42' },
+      { id: 'sae_byeok', initials: 'SB', name: 'Sae-byeok', color: '#457b9d' },
+      { id: 'frontman', initials: 'FM', name: 'Frontman',  color: '#111' },
+      { id: 'ali',      initials: 'AL', name: 'Ali',       color: '#06d6a0' },
+      { id: 'deok_su',  initials: 'DS', name: 'Deok-su',  color: '#f4a261' },
     ],
-    "Mercredi": [
-      { id: "mercredi", initials: "ME", name: "Mercredi", color: "#1a1a2e" },
-      { id: "enid", initials: "EN", name: "Enid", color: "#9b5de5" },
-      { id: "xavier", initials: "XV", name: "Xavier", color: "#457b9d" },
-      { id: "bianca", initials: "BI", name: "Bianca", color: "#e63946" },
-      { id: "thing", initials: "TH", name: "Thing", color: "#2d6a4f" },
+    'Mercredi': [
+      { id: 'mercredi', initials: 'ME', name: 'Mercredi', color: '#1a1a2e' },
+      { id: 'enid',     initials: 'EN', name: 'Enid',     color: '#9b5de5' },
+      { id: 'xavier',   initials: 'XV', name: 'Xavier',   color: '#457b9d' },
+      { id: 'bianca',   initials: 'BI', name: 'Bianca',   color: '#e63946' },
+      { id: 'thing',    initials: 'TH', name: 'Thing',    color: '#2d6a4f' },
     ],
   }
 }
 
+// ── AvatarPicker (inscription) ────────────────────────────────────────────
 function AvatarPicker({ onSelect }) {
   const [activeSerie, setActiveSerie] = useState('Breaking Bad')
   const [selected, setSelected] = useState(null)
@@ -56,7 +60,7 @@ function AvatarPicker({ onSelect }) {
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.from('avatar_options').select('*')
-      if (data && data.length > 0) {
+      if (data?.length) {
         const grouped = {}
         data.forEach(a => {
           if (!grouped[a.serie]) grouped[a.serie] = []
@@ -69,13 +73,13 @@ function AvatarPicker({ onSelect }) {
   }, [])
 
   const getAvatars = (serie) => {
-    if (avatarOptions[serie] && avatarOptions[serie].length > 0) {
+    if (avatarOptions[serie]?.length) {
       return avatarOptions[serie].map(a => ({
         id: a.character_id,
         name: a.character_name,
         image_url: a.image_url,
         initials: a.character_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
-        color: '#1a1a2e'
+        color: '#1a1a2e',
       }))
     }
     return avatars.Netflix[serie] || []
@@ -123,28 +127,49 @@ function AvatarPicker({ onSelect }) {
   )
 }
 
+// ── App ───────────────────────────────────────────────────────────────────
 function App() {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [isLogin, setIsLogin] = useState(true)
-  const [message, setMessage] = useState('')
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
-  const [pendingUser, setPendingUser] = useState(null)
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [showAdmin, setShowAdmin] = useState(false)
+  const [isLogin, setIsLogin]   = useState(true)
+  const [message, setMessage]   = useState('')
 
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
+  const [pendingUser, setPendingUser]           = useState(null)
+
+  const [user, setUser]       = useState(null)
+  const [profile, setProfile] = useState(null)   // ← données profil (avatar…)
+  const [loading, setLoading] = useState(true)
+
+  // 'home' | 'admin' | 'profile'
+  const [page, setPage] = useState('home')
+
+  // ── Auth + chargement profil ──
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) await loadProfile(u.id)
       setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) await loadProfile(u.id)
     })
     return () => subscription.unsubscribe()
   }, [])
 
+  const loadProfile = async (userId) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    setProfile(data || null)
+  }
+
+  // ── Auth handlers ──
   const handleAuth = async () => {
     setMessage('')
     if (isLogin) {
@@ -159,39 +184,61 @@ function App() {
 
   const handleAvatarSelect = async (avatar) => {
     const userId = pendingUser?.id || user?.id
-    await supabase.from('profiles').upsert({
-      id: userId,
-      avatar_id: avatar.id,
-      avatar_name: avatar.name,
-      avatar_color: avatar.color || '#1a1a2e',
-      avatar_initials: avatar.initials,
+    const payload = {
+      id:               userId,
+      avatar_id:        avatar.id,
+      avatar_name:      avatar.name,
+      avatar_color:     avatar.color || '#1a1a2e',
+      avatar_initials:  avatar.initials,
       avatar_image_url: avatar.image_url || null,
-    })
+    }
+    await supabase.from('profiles').upsert(payload, { onConflict: 'id' })
+    setProfile(payload)
     setShowAvatarPicker(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setUser(null)
-    setShowAdmin(false)
+    setUser(null); setProfile(null); setPage('home')
   }
 
+  // ── Loading ──
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f', color: '#ff2d55', fontSize: '24px', fontFamily: "'Poppins', sans-serif" }}>
       🎬 Chargement...
     </div>
   )
 
+  // ── Connecté ──
   if (user) return (
     <>
       {showAvatarPicker && <AvatarPicker onSelect={handleAvatarSelect} />}
-      {showAdmin
-        ? <Admin user={user} onBack={() => setShowAdmin(false)} />
-        : <Home user={user} onLogout={handleLogout} onAdmin={() => setShowAdmin(true)} />
-      }
+
+      {page === 'admin' && (
+        <Admin user={user} onBack={() => setPage('home')} />
+      )}
+      {page === 'profile' && (
+        <Profile
+          user={user}
+          profile={profile}
+          onBack={() => setPage('home')}
+          onLogout={handleLogout}
+          onAvatarUpdated={handleAvatarSelect}
+        />
+      )}
+      {page === 'home' && (
+        <Home
+          user={user}
+          profile={profile}
+          onLogout={handleLogout}
+          onAdmin={() => setPage('admin')}
+          onProfile={() => setPage('profile')}
+        />
+      )}
     </>
   )
 
+  // ── Écran de connexion ──
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", position: 'relative' }}>
       <div className="wave-container">
@@ -207,7 +254,7 @@ function App() {
           <p style={{ color: '#888', fontSize: '13px', marginTop: '6px' }}>Films & Séries en streaming</p>
         </div>
         <div style={{ display: 'flex', marginBottom: '1.5rem', background: '#1a1a2e', borderRadius: '12px', padding: '4px' }}>
-          <button onClick={() => setIsLogin(true)} style={{ flex: 1, padding: '10px', background: isLogin ? '#ff2d55' : 'transparent', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Poppins', sans-serif", fontSize: '14px' }}>Connexion</button>
+          <button onClick={() => setIsLogin(true)}  style={{ flex: 1, padding: '10px', background: isLogin  ? '#ff2d55' : 'transparent', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Poppins', sans-serif", fontSize: '14px' }}>Connexion</button>
           <button onClick={() => setIsLogin(false)} style={{ flex: 1, padding: '10px', background: !isLogin ? '#ff2d55' : 'transparent', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Poppins', sans-serif", fontSize: '14px' }}>Inscription</button>
         </div>
         <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)}

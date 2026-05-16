@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getTrending, getPopular, getNewReleases } from '../lib/api'
+import { AvatarBubble } from './Profile'   // ← import du composant avatar
 
 const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
 
@@ -135,7 +136,6 @@ function HeroSlider({ movies, onPlay }) {
   )
 }
 
-// Player vidéo Google Drive
 function VideoPlayer({ movie, onClose }) {
   return (
     <div
@@ -144,8 +144,6 @@ function VideoPlayer({ movie, onClose }) {
       <div
         onClick={e => e.stopPropagation()}
         style={{ width: '90%', maxWidth: '960px', background: '#0f0f1a', borderRadius: '16px', overflow: 'hidden', border: '1px solid #ff2d55' }}>
-
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: '#0a0a0f' }}>
           <div>
             <h2 style={{ color: '#fff', margin: 0, fontSize: '18px', fontWeight: '700' }}>{movie.title}</h2>
@@ -157,8 +155,6 @@ function VideoPlayer({ movie, onClose }) {
             ✕ Fermer
           </button>
         </div>
-
-        {/* Player iframe */}
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000' }}>
           <iframe
             src={movie.video_url}
@@ -168,8 +164,6 @@ function VideoPlayer({ movie, onClose }) {
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
           />
         </div>
-
-        {/* Description */}
         {movie.description && (
           <div style={{ padding: '1rem 1.5rem' }}>
             <p style={{ color: '#aaa', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>{movie.description}</p>
@@ -180,23 +174,28 @@ function VideoPlayer({ movie, onClose }) {
   )
 }
 
-export default function Home({ user, onLogout, onAdmin }) {
-  const [trending, setTrending] = useState([])
-  const [popular, setPopular] = useState([])
+// ─────────────────────────────────────────────
+// Composant principal
+// ─────────────────────────────────────────────
+export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
+  const [trending, setTrending]       = useState([])
+  const [popular, setPopular]         = useState([])
   const [newReleases, setNewReleases] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]         = useState(true)
   const [selectedMovie, setSelectedMovie] = useState(null)
-  const [playingMovie, setPlayingMovie] = useState(null)
+  const [playingMovie, setPlayingMovie]   = useState(null)
+  const [navScrolled, setNavScrolled]     = useState(false)
 
   useEffect(() => {
     const load = async () => {
       const [t, p, n] = await Promise.all([getTrending(), getPopular(), getNewReleases()])
-      setTrending(t)
-      setPopular(p)
-      setNewReleases(n)
+      setTrending(t); setPopular(p); setNewReleases(n)
       setLoading(false)
     }
     load()
+    const onScroll = () => setNavScrolled(window.scrollY > 40)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
@@ -206,27 +205,72 @@ export default function Home({ user, onLogout, onAdmin }) {
         ::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* Player vidéo */}
       {playingMovie && (
         <VideoPlayer movie={playingMovie} onClose={() => setPlayingMovie(null)} />
       )}
 
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)' }}>
-        <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '800', margin: 0 }}>Cine<span style={{ color: '#ff2d55' }}>max</span></h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* ── Navbar ── */}
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '0.9rem 2rem',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: navScrolled
+          ? 'rgba(10,10,15,0.96)'
+          : 'linear-gradient(to bottom, rgba(0,0,0,0.85), transparent)',
+        backdropFilter: navScrolled ? 'blur(10px)' : 'none',
+        transition: 'background 0.3s, backdrop-filter 0.3s',
+        borderBottom: navScrolled ? '1px solid rgba(255,45,85,0.08)' : 'none',
+      }}>
+        {/* Logo */}
+        <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '800', margin: 0 }}>
+          Cine<span style={{ color: '#ff2d55' }}>max</span>
+        </h1>
+
+        {/* Côté droit */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {user?.email === ADMIN_EMAIL && (
-            <button onClick={onAdmin} style={{ background: '#ff2d55', border: 'none', borderRadius: '8px', color: '#fff', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>⚙️ Admin</button>
+            <button onClick={onAdmin} style={{
+              background: '#ff2d55', border: 'none', borderRadius: '8px',
+              color: '#fff', padding: '6px 14px', cursor: 'pointer',
+              fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600'
+            }}>⚙️ Admin</button>
           )}
-          <span style={{ color: '#aaa', fontSize: '12px' }}>{user?.email}</span>
-          <button onClick={onLogout} style={{ background: 'transparent', border: '1px solid #ff2d55', borderRadius: '8px', color: '#ff2d55', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif" }}>Déconnexion</button>
+
+          {/* Bouton profil — avatar + nom */}
+          <button
+            onClick={onProfile}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '24px', padding: '4px 12px 4px 4px',
+              cursor: 'pointer', transition: 'all 0.2s',
+              fontFamily: "'Poppins', sans-serif",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.12)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+          >
+            <AvatarBubble profile={profile} size={30} />
+            <span style={{ color: '#ddd', fontSize: '12px', fontWeight: '500', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {profile?.avatar_name || user?.email?.split('@')[0]}
+            </span>
+          </button>
+
+          <button onClick={onLogout} style={{
+            background: 'transparent', border: '1px solid #ff2d55',
+            borderRadius: '8px', color: '#ff2d55', padding: '6px 14px',
+            cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif"
+          }}>
+            Déconnexion
+          </button>
         </div>
       </nav>
 
       <HeroSlider movies={trending} onPlay={setPlayingMovie} />
 
       <div style={{ paddingTop: '1.5rem' }}>
-        <MovieRow title="🔥 Tendances" movies={trending} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
-        <MovieRow title="⭐ Populaires" movies={popular} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
+        <MovieRow title="🔥 Tendances"  movies={trending}    loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
+        <MovieRow title="⭐ Populaires" movies={popular}     loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
         <MovieRow title="🆕 Nouveautés" movies={newReleases} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
       </div>
 
