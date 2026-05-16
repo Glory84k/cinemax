@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from './lib/supabase'
 import './App.css'
 import Home from './pages/Home'
 import Admin from './pages/Admin'
 import Profile from './pages/Profile'
 
-// ── Un seul client Supabase pour toute l'app ──────────────────────────────
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
-)
-
-// ── Avatars locaux de fallback ────────────────────────────────────────────
 const avatars = {
   Netflix: {
     'Breaking Bad': [
@@ -33,12 +26,12 @@ const avatars = {
       { id: 'rio',       initials: 'RO', name: 'Rio',           color: '#06d6a0' },
     ],
     'Squid Game': [
-      { id: 'gi_hun',   initials: 'GH', name: 'Gi-hun',   color: '#e63946' },
-      { id: 'sang_woo', initials: 'SW', name: 'Sang-woo', color: '#2b2d42' },
+      { id: 'gi_hun',    initials: 'GH', name: 'Gi-hun',    color: '#e63946' },
+      { id: 'sang_woo',  initials: 'SW', name: 'Sang-woo',  color: '#2b2d42' },
       { id: 'sae_byeok', initials: 'SB', name: 'Sae-byeok', color: '#457b9d' },
-      { id: 'frontman', initials: 'FM', name: 'Frontman',  color: '#111' },
-      { id: 'ali',      initials: 'AL', name: 'Ali',       color: '#06d6a0' },
-      { id: 'deok_su',  initials: 'DS', name: 'Deok-su',  color: '#f4a261' },
+      { id: 'frontman',  initials: 'FM', name: 'Frontman',   color: '#111' },
+      { id: 'ali',       initials: 'AL', name: 'Ali',        color: '#06d6a0' },
+      { id: 'deok_su',   initials: 'DS', name: 'Deok-su',   color: '#f4a261' },
     ],
     'Mercredi': [
       { id: 'mercredi', initials: 'ME', name: 'Mercredi', color: '#1a1a2e' },
@@ -50,7 +43,6 @@ const avatars = {
   }
 }
 
-// ── AvatarPicker (inscription) ────────────────────────────────────────────
 function AvatarPicker({ onSelect }) {
   const [activeSerie, setActiveSerie] = useState('Breaking Bad')
   const [selected, setSelected] = useState(null)
@@ -59,21 +51,23 @@ function AvatarPicker({ onSelect }) {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('avatar_options').select('*')
-      if (data?.length) {
-        const grouped = {}
-        data.forEach(a => {
-          if (!grouped[a.serie]) grouped[a.serie] = []
-          grouped[a.serie].push(a)
-        })
-        setAvatarOptions(grouped)
-      }
+      try {
+        const { data } = await supabase.from('avatar_options').select('*')
+        if (data && data.length > 0) {
+          const grouped = {}
+          data.forEach(a => {
+            if (!grouped[a.serie]) grouped[a.serie] = []
+            grouped[a.serie].push(a)
+          })
+          setAvatarOptions(grouped)
+        }
+      } catch (_) {}
     }
     load()
   }, [])
 
   const getAvatars = (serie) => {
-    if (avatarOptions[serie]?.length) {
+    if (avatarOptions[serie] && avatarOptions[serie].length > 0) {
       return avatarOptions[serie].map(a => ({
         id: a.character_id,
         name: a.character_name,
@@ -106,7 +100,8 @@ function AvatarPicker({ onSelect }) {
                 width: '70px', height: '70px', borderRadius: '50%', overflow: 'hidden',
                 border: selected?.id === avatar.id ? '3px solid #ff2d55' : '3px solid transparent',
                 transform: selected?.id === avatar.id ? 'scale(1.12)' : 'scale(1)',
-                transition: 'all 0.2s', boxShadow: selected?.id === avatar.id ? '0 0 20px #ff2d5566' : 'none',
+                transition: 'all 0.2s',
+                boxShadow: selected?.id === avatar.id ? '0 0 20px #ff2d5566' : 'none',
                 background: avatar.color, display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
                 {avatar.image_url
@@ -127,24 +122,18 @@ function AvatarPicker({ onSelect }) {
   )
 }
 
-// ── App ───────────────────────────────────────────────────────────────────
 function App() {
   const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
   const [isLogin, setIsLogin]   = useState(true)
   const [message, setMessage]   = useState('')
-
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
   const [pendingUser, setPendingUser]           = useState(null)
-
   const [user, setUser]       = useState(null)
-  const [profile, setProfile] = useState(null)   // ← données profil (avatar…)
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [page, setPage]       = useState('home')
 
-  // 'home' | 'admin' | 'profile'
-  const [page, setPage] = useState('home')
-
-  // ── Auth + chargement profil ──
   const loadProfile = async (userId) => {
     try {
       const { data } = await supabase
@@ -159,16 +148,20 @@ function App() {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const init = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession()
         const u = session?.user ?? null
         setUser(u)
         if (u) await loadProfile(u.id)
-      } catch (_) {
+      } catch (e) {
+        console.error('Session error:', e)
       } finally {
         setLoading(false)
       }
-    })
+    }
+    init()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         const u = session?.user ?? null
@@ -176,10 +169,10 @@ function App() {
         if (u) await loadProfile(u.id)
       } catch (_) {}
     })
+
     return () => subscription.unsubscribe()
   }, [])
 
-  // ── Auth handlers ──
   const handleAuth = async () => {
     setMessage('')
     if (isLogin) {
@@ -202,53 +195,35 @@ function App() {
       avatar_initials:  avatar.initials,
       avatar_image_url: avatar.image_url || null,
     }
-    await supabase.from('profiles').upsert(payload, { onConflict: 'id' })
+    try {
+      await supabase.from('profiles').upsert(payload, { onConflict: 'id' })
+    } catch (_) {}
     setProfile(payload)
     setShowAvatarPicker(false)
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    setUser(null); setProfile(null); setPage('home')
+    setUser(null)
+    setProfile(null)
+    setPage('home')
   }
 
-  // ── Loading ──
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f', color: '#ff2d55', fontSize: '24px', fontFamily: "'Poppins', sans-serif" }}>
       🎬 Chargement...
     </div>
   )
 
-  // ── Connecté ──
   if (user) return (
     <>
       {showAvatarPicker && <AvatarPicker onSelect={handleAvatarSelect} />}
-
-      {page === 'admin' && (
-        <Admin user={user} onBack={() => setPage('home')} />
-      )}
-      {page === 'profile' && (
-        <Profile
-          user={user}
-          profile={profile}
-          onBack={() => setPage('home')}
-          onLogout={handleLogout}
-          onAvatarUpdated={handleAvatarSelect}
-        />
-      )}
-      {page === 'home' && (
-        <Home
-          user={user}
-          profile={profile}
-          onLogout={handleLogout}
-          onAdmin={() => setPage('admin')}
-          onProfile={() => setPage('profile')}
-        />
-      )}
+      {page === 'admin'   && <Admin   user={user} onBack={() => setPage('home')} />}
+      {page === 'profile' && <Profile user={user} profile={profile} onBack={() => setPage('home')} onLogout={handleLogout} onAvatarUpdated={handleAvatarSelect} />}
+      {page === 'home'    && <Home    user={user} profile={profile} onLogout={handleLogout} onAdmin={() => setPage('admin')} onProfile={() => setPage('profile')} />}
     </>
   )
 
-  // ── Écran de connexion ──
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", position: 'relative' }}>
       <div className="wave-container">
