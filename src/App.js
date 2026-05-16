@@ -131,7 +131,6 @@ function App() {
   const [pendingUser, setPendingUser]           = useState(null)
   const [user, setUser]       = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [page, setPage]       = useState('home')
 
   const loadProfile = async (userId) => {
@@ -148,26 +147,16 @@ function App() {
   }
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const u = session?.user ?? null
-        setUser(u)
-        if (u) await loadProfile(u.id)
-      } catch (e) {
-        console.error('Session error:', e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    init()
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) await loadProfile(u.id)
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      try {
-        const u = session?.user ?? null
-        setUser(u)
-        if (u) await loadProfile(u.id)
-      } catch (_) {}
+      const u = session?.user ?? null
+      setUser(u)
+      if (u) await loadProfile(u.id)
     })
 
     return () => subscription.unsubscribe()
@@ -209,22 +198,7 @@ function App() {
     setPage('home')
   }
 
-  if (loading) return (
-  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f', color: '#ff2d55', fontSize: '24px', fontFamily: "'Poppins', sans-serif" }}>
-    🎬 Chargement...
-  </div>
-)
-
-  if (user) return (
-    <>
-      {showAvatarPicker && <AvatarPicker onSelect={handleAvatarSelect} />}
-      {page === 'admin'   && <Admin   user={user} onBack={() => setPage('home')} />}
-      {page === 'profile' && <Profile user={user} profile={profile} onBack={() => setPage('home')} onLogout={handleLogout} onAvatarUpdated={handleAvatarSelect} />}
-      {page === 'home'    && <Home    user={user} profile={profile} onLogout={handleLogout} onAdmin={() => setPage('admin')} onProfile={() => setPage('profile')} />}
-    </>
-  )
-
-  return (
+  if (!user) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", position: 'relative' }}>
       <div className="wave-container">
         <div className="wave wave1"></div>
@@ -254,6 +228,15 @@ function App() {
         {message && <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '13px', color: message.startsWith('❌') ? '#ff4444' : '#4caf50' }}>{message}</p>}
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {showAvatarPicker && <AvatarPicker onSelect={handleAvatarSelect} />}
+      {page === 'admin'   && <Admin   user={user} onBack={() => setPage('home')} />}
+      {page === 'profile' && <Profile user={user} profile={profile} onBack={() => setPage('home')} onLogout={handleLogout} onAvatarUpdated={handleAvatarSelect} />}
+      {page === 'home'    && <Home    user={user} profile={profile} onLogout={handleLogout} onAdmin={() => setPage('admin')} onProfile={() => setPage('profile')} />}
+    </>
   )
 }
 
