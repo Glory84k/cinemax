@@ -210,9 +210,8 @@ function App() {
   }
 
   if (loading) return (
-  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f', color: '#ff2d55', fontSize: '24px', fontFamily: "'Poppins', sans-serif" }}
-    onClick={() => setLoading(false)}>
-    🎬 Chargement... (clique pour passer)
+  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0f', color: '#ff2d55', fontSize: '24px', fontFamily: "'Poppins', sans-serif" }}>
+    🎬 Chargement...
   </div>
 )
 
