@@ -145,29 +145,39 @@ function App() {
   const [page, setPage] = useState('home')
 
   // ── Auth + chargement profil ──
+  const loadProfile = async (userId) => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      setProfile(data || null)
+    } catch (_) {
+      setProfile(null)
+    }
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const u = session?.user ?? null
-      setUser(u)
-      if (u) await loadProfile(u.id)
-      setLoading(false)
+      try {
+        const u = session?.user ?? null
+        setUser(u)
+        if (u) await loadProfile(u.id)
+      } catch (_) {
+      } finally {
+        setLoading(false)
+      }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const u = session?.user ?? null
-      setUser(u)
-      if (u) await loadProfile(u.id)
+      try {
+        const u = session?.user ?? null
+        setUser(u)
+        if (u) await loadProfile(u.id)
+      } catch (_) {}
     })
     return () => subscription.unsubscribe()
   }, [])
-
-  const loadProfile = async (userId) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data || null)
-  }
 
   // ── Auth handlers ──
   const handleAuth = async () => {
