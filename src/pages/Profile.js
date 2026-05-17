@@ -12,6 +12,7 @@ const FALLBACK_AVATARS = {
     { id: 'gus',          initials: 'GF', name: 'Gus Fring',     color: '#e63946' },
     { id: 'hank',         initials: 'HS', name: 'Hank',          color: '#f4a261' },
     { id: 'skyler',       initials: 'SW', name: 'Skyler',        color: '#a8dadc' },
+    { id: 'jane',         initials: 'JJ', name: 'Jane',          color: '#a8dadc' },                    
   ],
   'La Casa de Papel': [
     { id: 'professor', initials: 'PR', name: 'Le Professeur', color: '#e63946' },

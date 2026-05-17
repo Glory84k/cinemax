@@ -79,7 +79,7 @@ function SkeletonCard() {
   )
 }
 
-function MovieRow({ title, emoji, movies, loading, onMovieClick, onPlayClick }) {
+function MovieRow({ title, movies, loading, onMovieClick, onPlayClick }) {
   return (
     <div style={{ marginBottom: '2.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', paddingLeft: '2rem' }}>
@@ -112,8 +112,8 @@ function HeroSlider({ movies, onPlay }) {
   }, [movies])
 
   if (movies.length === 0) return (
-    <div style={{ height: '65vh', background: 'linear-gradient(135deg, #1a0010 0%, #0a0a0f 60%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem', paddingTop: '70px' }}>
-      <div>
+    <div style={{ height: '70vh', background: 'linear-gradient(135deg, #1a0010 0%, #0a0a0f 60%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
+      <div style={{ paddingTop: '80px' }}>
         <p style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>🔥 À LA UNE</p>
         <h2 style={{ color: '#fff', fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: '800', margin: '0 0 16px', lineHeight: 1.05 }}>Bienvenue sur<br /><span style={{ color: '#ff2d55' }}>Cinemax</span></h2>
         <p style={{ color: '#888', fontSize: '15px', maxWidth: '400px', lineHeight: 1.6 }}>Films & Séries en streaming. Regarde ce que tu veux, quand tu veux.</p>
@@ -123,24 +123,28 @@ function HeroSlider({ movies, onPlay }) {
 
   const movie = movies[current]
   return (
-    <div style={{ height: '65vh', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '70vh', position: 'relative', overflow: 'hidden' }}>
       <div style={{
         position: 'absolute', inset: 0,
-        background: movie.cover_url ? `url(${movie.cover_url}) center/cover no-repeat` : 'linear-gradient(135deg, #1a0010, #0a0a0f)',
+        backgroundImage: movie.cover_url ? `url(${movie.cover_url})` : 'none',
+        backgroundColor: '#1a0010',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat',
         opacity: transitioning ? 0 : 1,
         transition: 'opacity 0.3s ease',
         filter: 'brightness(0.45) saturate(1.2)'
       }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.92) 35%, rgba(0,0,0,0.3) 70%, transparent 100%)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.8) 0%, transparent 40%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.9) 0%, transparent 50%)' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '70px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,45,85,0.15)', border: '1px solid rgba(255,45,85,0.3)', borderRadius: '20px', padding: '4px 14px', width: 'fit-content', marginBottom: '16px' }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff2d55', display: 'inline-block', animation: 'pulse 2s infinite' }} />
           <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase' }}>À la une</span>
         </div>
         <h2 style={{ color: '#fff', fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: '800', margin: '0 0 12px', lineHeight: 1.05, maxWidth: '550px', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>{movie.title}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
           <span style={{ color: '#aaa', fontSize: '13px' }}>{movie.release_year}</span>
           <span style={{ color: '#555' }}>•</span>
           <span style={{ color: '#aaa', fontSize: '13px' }}>{movie.duration_min}min</span>
@@ -153,11 +157,11 @@ function HeroSlider({ movies, onPlay }) {
         <div style={{ display: 'flex', gap: '12px' }}>
           {movie.video_url && (
             <button onClick={() => onPlay(movie)}
-              style={{ background: '#ff2d55', border: 'none', borderRadius: '10px', color: '#fff', padding: '12px 28px', fontSize: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 20px rgba(255,45,85,0.4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              style={{ background: '#ff2d55', border: 'none', borderRadius: '10px', color: '#fff', padding: '12px 28px', fontSize: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 20px rgba(255,45,85,0.4)' }}>
               ▶ Regarder
             </button>
           )}
-          <button style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: '#fff', padding: '12px 24px', fontSize: '14px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", backdropFilter: 'blur(10px)' }}>
+          <button style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: '#fff', padding: '12px 24px', fontSize: '14px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
             + Ma liste
           </button>
         </div>
@@ -186,7 +190,7 @@ function VideoPlayer({ movie, onClose }) {
           </button>
         </div>
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000' }}>
-          <iframe src={movie.video_url} title={movie.title} allow="autoplay; fullscreen" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
+          <iframe src={movie.video_url} title={movie.title} allow="fullscreen" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
         </div>
         {movie.description && (
           <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
