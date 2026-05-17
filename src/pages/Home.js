@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getTrending, getPopular, getNewReleases } from '../lib/api'
 
 const ADMIN_EMAIL = 'speedsongsupsa@gmail.com'
 const placeholderColors = ['#1a1a2e','#16213e','#0f3460','#533483','#2b2d42','#e63946','#457b9d','#2d6a4f','#f4a261']
-
 function getColor(id) { return placeholderColors[id % placeholderColors.length] }
 
 function AvatarBubble({ profile, size = 34 }) {
   const fontSize = size * 0.38
   if (profile?.avatar_image_url) {
-    return <img src={profile.avatar_image_url} alt={profile.avatar_name || 'Avatar'} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,45,85,0.7)', flexShrink: 0 }} />
+    return <img src={profile.avatar_image_url} alt={profile.avatar_name || 'Avatar'} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,45,85,0.8)', flexShrink: 0, boxShadow: '0 0 12px rgba(255,45,85,0.3)' }} />
   }
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, background: profile?.avatar_color || '#333', border: '2px solid rgba(255,45,85,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize, fontWeight: '700', color: '#fff', fontFamily: "'Poppins', sans-serif" }}>
+    <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, background: profile?.avatar_color || '#333', border: '2px solid rgba(255,45,85,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize, fontWeight: '700', color: '#fff', fontFamily: "'Poppins', sans-serif", boxShadow: '0 0 12px rgba(255,45,85,0.3)' }}>
       {profile?.avatar_initials || '?'}
     </div>
   )
@@ -24,42 +23,48 @@ function MovieCard({ movie, index, onClick, onPlay }) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={() => onClick(movie)}
       style={{
-        minWidth: '170px', height: '255px', borderRadius: '12px', cursor: 'pointer', flexShrink: 0,
+        minWidth: '180px', height: '270px', borderRadius: '14px', cursor: 'pointer', flexShrink: 0,
         background: movie.cover_url ? `url(${movie.cover_url}) center/cover` : getColor(index),
         position: 'relative', overflow: 'hidden',
-        transform: hovered ? 'scale(1.07) translateY(-4px)' : 'scale(1)',
-        transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        boxShadow: hovered ? '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,45,85,0.3)' : '0 4px 15px rgba(0,0,0,0.4)'
+        transform: hovered ? 'scale(1.08) translateY(-8px)' : 'scale(1)',
+        transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        boxShadow: hovered ? '0 25px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,45,85,0.4), 0 0 30px rgba(255,45,85,0.15)' : '0 4px 20px rgba(0,0,0,0.5)'
       }}>
       {!movie.cover_url && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px' }}>🎬</div>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '44px' }}>🎬</div>
       )}
       <div style={{
         position: 'absolute', inset: 0,
-        background: hovered ? 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' : 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)',
-        transition: 'all 0.3s'
+        background: hovered
+          ? 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.1) 100%)'
+          : 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 55%)',
+        transition: 'all 0.4s'
       }} />
       {hovered && (
-        <div style={{ position: 'absolute', top: '10px', right: '10px', background: '#ff2d55', borderRadius: '6px', padding: '3px 8px', fontSize: '10px', color: '#fff', fontWeight: '700' }}>
-          {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
-        </div>
+        <>
+          <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,45,85,0.9)', borderRadius: '6px', padding: '3px 10px', fontSize: '10px', color: '#fff', fontWeight: '800', letterSpacing: '1px' }}>
+            {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
+          </div>
+          <div style={{ position: 'absolute', inset: 0, border: '2px solid rgba(255,45,85,0.4)', borderRadius: '14px', pointerEvents: 'none' }} />
+        </>
       )}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1rem 0.875rem 0.875rem' }}>
-        <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: '0 0 4px', lineHeight: 1.3 }}>{movie.title}</p>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.2rem 1rem 1rem' }}>
+        <p style={{ color: '#fff', fontSize: '13px', fontWeight: '700', margin: '0 0 4px', lineHeight: 1.3, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{movie.title}</p>
         {hovered && (
-          <div>
-            <p style={{ color: '#aaa', fontSize: '10px', margin: '0 0 8px' }}>{movie.release_year} • {movie.duration_min}min</p>
+          <div style={{ animation: 'fadeIn 0.2s ease' }}>
+            <p style={{ color: '#bbb', fontSize: '11px', margin: '0 0 10px' }}>{movie.release_year} • {movie.duration_min}min</p>
             <div style={{ display: 'flex', gap: '6px' }}>
               {movie.video_url && (
                 <button onClick={e => { e.stopPropagation(); onPlay(movie) }}
-                  style={{ background: '#ff2d55', border: 'none', borderRadius: '6px', color: '#fff', padding: '5px 12px', fontSize: '11px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif" }}>
-                  ▶ Voir
+                  style={{ background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '8px', color: '#fff', padding: '6px 14px', fontSize: '11px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 12px rgba(255,45,85,0.4)' }}>
+                  ▶ Regarder
                 </button>
               )}
               <button onClick={e => { e.stopPropagation(); onClick(movie) }}
-                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: '#fff', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
-                ℹ️
+                style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '8px', color: '#fff', padding: '6px 10px', fontSize: '11px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
+                + Infos
               </button>
             </div>
           </div>
@@ -72,25 +77,26 @@ function MovieCard({ movie, index, onClick, onPlay }) {
 function SkeletonCard() {
   return (
     <div style={{
-      minWidth: '170px', height: '255px', borderRadius: '12px', flexShrink: 0,
-      background: 'linear-gradient(90deg, #1a1a2e 25%, #242438 50%, #1a1a2e 75%)',
-      backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite'
+      minWidth: '180px', height: '270px', borderRadius: '14px', flexShrink: 0,
+      background: 'linear-gradient(90deg, #111122 25%, #1e1e35 50%, #111122 75%)',
+      backgroundSize: '200% 100%', animation: 'shimmer 1.8s infinite'
     }} />
   )
 }
 
 function MovieRow({ title, movies, loading, onMovieClick, onPlayClick }) {
+  const rowRef = useRef(null)
   return (
-    <div style={{ marginBottom: '2.5rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', paddingLeft: '2rem' }}>
-        <h2 style={{ color: '#fff', fontSize: '19px', fontWeight: '700', margin: 0 }}>{title}</h2>
-        <div style={{ height: '2px', width: '40px', background: 'linear-gradient(to right, #ff2d55, transparent)', borderRadius: '2px' }} />
+    <div style={{ marginBottom: '3rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1.2rem', paddingLeft: '2.5rem' }}>
+        <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '-0.3px' }}>{title}</h2>
+        <div style={{ height: '2px', width: '50px', background: 'linear-gradient(to right, #ff2d55, transparent)', borderRadius: '2px' }} />
       </div>
-      <div style={{ display: 'flex', gap: '14px', overflowX: 'auto', paddingLeft: '2rem', paddingRight: '2rem', paddingBottom: '12px', scrollbarWidth: 'none' }}>
+      <div ref={rowRef} style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingLeft: '2.5rem', paddingRight: '2.5rem', paddingBottom: '16px', scrollbarWidth: 'none' }}>
         {loading
-          ? Array(6).fill(0).map((_, i) => <SkeletonCard key={i} />)
+          ? Array(7).fill(0).map((_, i) => <SkeletonCard key={i} />)
           : movies.length === 0
-            ? <p style={{ color: '#444', fontSize: '13px', fontStyle: 'italic', paddingTop: '8px' }}>Aucun contenu disponible...</p>
+            ? <p style={{ color: '#333', fontSize: '14px', fontStyle: 'italic', paddingTop: '8px' }}>Aucun contenu disponible...</p>
             : movies.map((m, i) => <MovieCard key={m.id} movie={m} index={i} onClick={onMovieClick} onPlay={onPlayClick} />)
         }
       </div>
@@ -98,105 +104,170 @@ function MovieRow({ title, movies, loading, onMovieClick, onPlayClick }) {
   )
 }
 
-function HeroSlider({ movies, onPlay }) {
+function HeroSlider({ movies, onPlay, onInfo }) {
   const [current, setCurrent] = useState(0)
+  const [prev, setPrev] = useState(null)
   const [transitioning, setTransitioning] = useState(false)
 
+  const goTo = (i) => {
+    if (i === current || transitioning) return
+    setPrev(current)
+    setTransitioning(true)
+    setTimeout(() => { setCurrent(i); setPrev(null); setTransitioning(false) }, 600)
+  }
+
   useEffect(() => {
-    if (movies.length === 0) return
-    const timer = setInterval(() => {
-      setTransitioning(true)
-      setTimeout(() => { setCurrent(c => (c + 1) % movies.length); setTransitioning(false) }, 300)
-    }, 6000)
+    if (movies.length <= 1) return
+    const timer = setInterval(() => goTo((current + 1) % movies.length), 7000)
     return () => clearInterval(timer)
-  }, [movies])
+  }, [movies, current])
 
   if (movies.length === 0) return (
-    <div style={{ height: '70vh', background: 'linear-gradient(135deg, #1a0010 0%, #0a0a0f 60%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
+    <div style={{ height: '75vh', background: 'radial-gradient(ellipse at 30% 50%, #2a0010 0%, #0a0a0f 70%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
       <div style={{ paddingTop: '80px' }}>
-        <p style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '700', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>🔥 À LA UNE</p>
-        <h2 style={{ color: '#fff', fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: '800', margin: '0 0 16px', lineHeight: 1.05 }}>Bienvenue sur<br /><span style={{ color: '#ff2d55' }}>Cinemax</span></h2>
-        <p style={{ color: '#888', fontSize: '15px', maxWidth: '400px', lineHeight: 1.6 }}>Films & Séries en streaming. Regarde ce que tu veux, quand tu veux.</p>
+        <p style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px' }}>🎬 STREAMING</p>
+        <h2 style={{ color: '#fff', fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: '900', margin: '0 0 20px', lineHeight: 1.0, letterSpacing: '-2px' }}>Bienvenue sur<br /><span style={{ color: '#ff2d55', WebkitTextStroke: '1px rgba(255,45,85,0.3)' }}>Cinemax</span></h2>
+        <p style={{ color: '#666', fontSize: '16px', maxWidth: '420px', lineHeight: 1.7 }}>Films & Séries en streaming. Regarde ce que tu veux, quand tu veux.</p>
       </div>
     </div>
   )
 
   const movie = movies[current]
   return (
-    <div style={{ height: '70vh', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ height: '75vh', position: 'relative', overflow: 'hidden' }}>
+      {prev !== null && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          backgroundImage: movies[prev]?.cover_url ? `url(${movies[prev].cover_url})` : 'none',
+          backgroundColor: '#1a0010',
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'brightness(0.4) saturate(1.1)',
+          opacity: transitioning ? 0 : 1,
+          transition: 'opacity 0.6s ease'
+        }} />
+      )}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', inset: 0, zIndex: 1,
         backgroundImage: movie.cover_url ? `url(${movie.cover_url})` : 'none',
         backgroundColor: '#1a0010',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center center',
-        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        filter: 'brightness(0.4) saturate(1.2)',
         opacity: transitioning ? 0 : 1,
-        transition: 'opacity 0.3s ease',
-        filter: 'brightness(0.45) saturate(1.2)'
+        transition: 'opacity 0.6s ease'
       }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.95) 30%, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.2) 100%)' }} />
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,15,0.9) 0%, transparent 50%)' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg, rgba(0,0,0,0.98) 25%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.15) 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.3) 30%, transparent 60%)' }} />
 
-      <div style={{ position: 'relative', zIndex: 1, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,45,85,0.15)', border: '1px solid rgba(255,45,85,0.3)', borderRadius: '20px', padding: '4px 14px', width: 'fit-content', marginBottom: '16px' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff2d55', display: 'inline-block', animation: 'pulse 2s infinite' }} />
-          <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase' }}>À la une</span>
+      <div style={{ position: 'relative', zIndex: 3, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px', opacity: transitioning ? 0 : 1, transition: 'opacity 0.4s ease', transform: transitioning ? 'translateY(10px)' : 'translateY(0)', }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', width: 'fit-content' }}>
+          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
+          <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase' }}>À LA UNE</span>
         </div>
-        <h2 style={{ color: '#fff', fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: '800', margin: '0 0 12px', lineHeight: 1.05, maxWidth: '550px', textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>{movie.title}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
-          <span style={{ color: '#aaa', fontSize: '13px' }}>{movie.release_year}</span>
-          <span style={{ color: '#555' }}>•</span>
-          <span style={{ color: '#aaa', fontSize: '13px' }}>{movie.duration_min}min</span>
-          {movie.category && <>
-            <span style={{ color: '#555' }}>•</span>
-            <span style={{ background: 'rgba(255,255,255,0.1)', color: '#ccc', fontSize: '11px', padding: '2px 10px', borderRadius: '12px' }}>{movie.category}</span>
-          </>}
+        <h2 style={{ color: '#fff', fontSize: 'clamp(32px, 5vw, 60px)', fontWeight: '900', margin: '0 0 16px', lineHeight: 1.0, maxWidth: '600px', letterSpacing: '-1.5px', textShadow: '0 4px 30px rgba(0,0,0,0.8)' }}>{movie.title}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          {movie.release_year && <span style={{ color: '#888', fontSize: '13px', fontWeight: '500' }}>{movie.release_year}</span>}
+          {movie.duration_min && <><span style={{ color: '#444' }}>•</span><span style={{ color: '#888', fontSize: '13px' }}>{movie.duration_min} min</span></>}
+          {movie.category && <><span style={{ color: '#444' }}>•</span><span style={{ background: 'rgba(255,45,85,0.12)', color: '#ff6b8a', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: '1px solid rgba(255,45,85,0.2)', fontWeight: '600' }}>{movie.category}</span></>}
+          <span style={{ background: movie.type === 'series' ? 'rgba(99,179,237,0.15)' : 'rgba(255,200,60,0.15)', color: movie.type === 'series' ? '#63b3ed' : '#f6c90e', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: `1px solid ${movie.type === 'series' ? 'rgba(99,179,237,0.2)' : 'rgba(246,201,14,0.2)'}`, fontWeight: '600' }}>
+            {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
+          </span>
         </div>
-        <p style={{ color: '#bbb', fontSize: '14px', maxWidth: '460px', marginBottom: '2rem', lineHeight: 1.65 }}>{movie.description?.slice(0, 130)}...</p>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <p style={{ color: '#999', fontSize: '15px', maxWidth: '500px', marginBottom: '2.5rem', lineHeight: 1.7 }}>{movie.description?.slice(0, 150)}{movie.description?.length > 150 ? '...' : ''}</p>
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
           {movie.video_url && (
-            <button onClick={() => onPlay(movie)}
-              style={{ background: '#ff2d55', border: 'none', borderRadius: '10px', color: '#fff', padding: '12px 28px', fontSize: '14px', cursor: 'pointer', fontWeight: '700', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 20px rgba(255,45,85,0.4)' }}>
-              ▶ Regarder
+            <button onClick={() => onPlay(movie)} style={{ background: 'linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%)', border: 'none', borderRadius: '12px', color: '#fff', padding: '14px 32px', fontSize: '15px', cursor: 'pointer', fontWeight: '800', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.45)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'transform 0.2s, box-shadow 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,45,85,0.6)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(255,45,85,0.45)' }}>
+              <span style={{ fontSize: '16px' }}>▶</span> Regarder
             </button>
           )}
-          <button style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: '#fff', padding: '12px 24px', fontSize: '14px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
-            + Ma liste
+          <button onClick={() => onInfo(movie)} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', color: '#fff', padding: '14px 28px', fontSize: '15px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", fontWeight: '600', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}>
+            ℹ️ Plus d'infos
           </button>
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: '20px', left: '3rem', display: 'flex', gap: '8px', zIndex: 1 }}>
+      <div style={{ position: 'absolute', bottom: '28px', left: '3rem', display: 'flex', gap: '8px', zIndex: 4 }}>
         {movies.map((_, i) => (
-          <div key={i} onClick={() => setCurrent(i)} style={{ width: i === current ? '28px' : '8px', height: '4px', borderRadius: '2px', background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.4s' }} />
+          <div key={i} onClick={() => goTo(i)} style={{ width: i === current ? '32px' : '8px', height: '4px', borderRadius: '2px', background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.2)', cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: i === current ? '0 0 8px rgba(255,45,85,0.6)' : 'none' }} />
         ))}
       </div>
     </div>
   )
 }
 
-function VideoPlayer({ movie, onClose }) {
+function MovieModal({ movie, onClose, onPlay }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.97)', zIndex: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif" }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '92%', maxWidth: '1000px', background: '#0f0f1a', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,45,85,0.3)', boxShadow: '0 0 60px rgba(0,0,0,0.8)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.5rem', background: 'rgba(0,0,0,0.5)' }}>
-          <div>
-            <h2 style={{ color: '#fff', margin: 0, fontSize: '17px', fontWeight: '700' }}>{movie.title}</h2>
-            <p style={{ color: '#666', margin: '2px 0 0', fontSize: '12px' }}>{movie.release_year} • {movie.duration_min}min • {movie.type === 'series' ? 'Série' : 'Film'}</p>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(12px)', animation: 'fadeIn 0.2s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: 'linear-gradient(145deg, #0f0f1a, #1a0a12)', borderRadius: '24px', width: '90%', maxWidth: '520px', overflow: 'hidden', border: '1px solid rgba(255,45,85,0.15)', boxShadow: '0 0 80px rgba(0,0,0,0.9), 0 0 40px rgba(255,45,85,0.08)', animation: 'slideUp 0.3s ease' }}>
+        {movie.cover_url && (
+          <div style={{ position: 'relative', height: '240px', overflow: 'hidden' }}>
+            <img src={movie.cover_url} alt={movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'brightness(0.8)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, #0f0f1a 0%, transparent 60%)' }} />
+            <button onClick={onClose} style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%', width: '36px', height: '36px', color: '#fff', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>✕</button>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,45,85,0.15)', border: '1px solid rgba(255,45,85,0.3)', borderRadius: '8px', color: '#ff2d55', padding: '7px 16px', cursor: 'pointer', fontSize: '13px', fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>
+        )}
+        <div style={{ padding: '1.75rem' }}>
+          {!movie.cover_url && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: '#fff', padding: '6px 14px', cursor: 'pointer', fontSize: '13px' }}>✕ Fermer</button>
+            </div>
+          )}
+          <h2 style={{ color: '#fff', marginBottom: '10px', fontSize: '22px', fontWeight: '900', letterSpacing: '-0.5px' }}>{movie.title}</h2>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '1.2rem', flexWrap: 'wrap' }}>
+            {movie.release_year && <span style={{ background: 'rgba(255,255,255,0.07)', color: '#aaa', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' }}>{movie.release_year}</span>}
+            {movie.duration_min && <span style={{ background: 'rgba(255,255,255,0.07)', color: '#aaa', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' }}>{movie.duration_min} min</span>}
+            <span style={{ background: movie.type === 'series' ? 'rgba(99,179,237,0.12)' : 'rgba(255,200,60,0.12)', color: movie.type === 'series' ? '#63b3ed' : '#f6c90e', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', fontWeight: '700' }}>
+              {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
+            </span>
+            {movie.category && <span style={{ background: 'rgba(255,45,85,0.1)', color: '#ff6b8a', fontSize: '11px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600', border: '1px solid rgba(255,45,85,0.15)' }}>{movie.category}</span>}
+          </div>
+          <p style={{ color: '#888', fontSize: '14px', marginBottom: '1.75rem', lineHeight: 1.75 }}>{movie.description || 'Aucune description disponible.'}</p>
+          {movie.video_url ? (
+            <button onClick={() => { onClose(); onPlay(movie) }}
+              style={{ width: '100%', padding: '15px', background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '14px', color: '#fff', fontWeight: '800', cursor: 'pointer', fontSize: '15px', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.35)', letterSpacing: '0.3px' }}>
+              ▶ Regarder maintenant
+            </button>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '14px', background: 'rgba(255,255,255,0.04)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Vidéo non disponible</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VideoPlayer({ movie, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.98)', zIndex: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Poppins', sans-serif", animation: 'fadeIn 0.2s ease' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '94%', maxWidth: '1050px', background: '#080810', borderRadius: '20px', overflow: 'hidden', border: '1px solid rgba(255,45,85,0.2)', boxShadow: '0 0 80px rgba(0,0,0,1), 0 0 40px rgba(255,45,85,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.1rem 1.5rem', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <div>
+            <h2 style={{ color: '#fff', margin: 0, fontSize: '17px', fontWeight: '800', letterSpacing: '-0.3px' }}>{movie.title}</h2>
+            <p style={{ color: '#555', margin: '3px 0 0', fontSize: '12px' }}>{movie.release_year} • {movie.duration_min}min • {movie.type === 'series' ? 'Série' : 'Film'}</p>
+          </div>
+          <button onClick={onClose} style={{ background: 'rgba(255,45,85,0.12)', border: '1px solid rgba(255,45,85,0.25)', borderRadius: '10px', color: '#ff2d55', padding: '8px 18px', cursor: 'pointer', fontSize: '13px', fontFamily: "'Poppins', sans-serif", fontWeight: '700', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.22)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,45,85,0.12)'}>
             ✕ Fermer
           </button>
         </div>
         <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000' }}>
           <iframe src={movie.video_url} title={movie.title} allow="fullscreen" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }} />
         </div>
-        {movie.description && (
-          <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-            <p style={{ color: '#888', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>{movie.description}</p>
-          </div>
-        )}
       </div>
     </div>
   )
@@ -222,7 +293,7 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
       }
     }
     load()
-    const onScroll = () => setNavScrolled(window.scrollY > 40)
+    const onScroll = () => setNavScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -231,73 +302,57 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
     <div style={{ minHeight: '100vh', background: '#0a0a0f', fontFamily: "'Poppins', sans-serif" }}>
       <style>{`
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
         ::-webkit-scrollbar { display: none; }
       `}</style>
 
       {playingMovie && <VideoPlayer movie={playingMovie} onClose={() => setPlayingMovie(null)} />}
+      {selectedMovie && <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} onPlay={m => { setSelectedMovie(null); setPlayingMovie(m) }} />}
 
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        padding: '0.85rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: navScrolled ? 'rgba(8,8,12,0.98)' : 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)',
-        backdropFilter: navScrolled ? 'blur(20px)' : 'none',
-        transition: 'all 0.3s',
-        borderBottom: navScrolled ? '1px solid rgba(255,255,255,0.05)' : 'none',
+        padding: '0.9rem 2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: navScrolled ? 'rgba(8,8,12,0.97)' : 'linear-gradient(to bottom, rgba(0,0,0,0.75), transparent)',
+        backdropFilter: navScrolled ? 'blur(24px)' : 'none',
+        transition: 'all 0.4s',
+        borderBottom: navScrolled ? '1px solid rgba(255,255,255,0.04)' : 'none',
       }}>
-        <h1 style={{ color: '#fff', fontSize: '22px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>
+        <h1 style={{ color: '#fff', fontSize: '23px', fontWeight: '900', margin: 0, letterSpacing: '-0.8px' }}>
           Cine<span style={{ color: '#ff2d55' }}>max</span>
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {user?.email === ADMIN_EMAIL && (
-            <button onClick={onAdmin} style={{ background: 'rgba(255,45,85,0.15)', border: '1px solid rgba(255,45,85,0.3)', borderRadius: '8px', color: '#ff2d55', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>
+            <button onClick={onAdmin} style={{ background: 'rgba(255,45,85,0.12)', border: '1px solid rgba(255,45,85,0.25)', borderRadius: '10px', color: '#ff2d55', padding: '7px 16px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '700', transition: 'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.22)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,45,85,0.12)'}>
               ⚙️ Admin
             </button>
           )}
-          <button onClick={onProfile} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '4px 14px 4px 4px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.12)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}>
-            <AvatarBubble profile={profile} size={30} />
-            <span style={{ color: '#ddd', fontSize: '12px', fontWeight: '500', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <button onClick={onProfile} style={{ display: 'flex', alignItems: 'center', gap: '9px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '28px', padding: '5px 16px 5px 5px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,45,85,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,45,85,0.2)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)' }}>
+            <AvatarBubble profile={profile} size={32} />
+            <span style={{ color: '#ddd', fontSize: '12px', fontWeight: '600', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {profile?.avatar_name || user?.email?.split('@')[0]}
             </span>
           </button>
-          <button onClick={onLogout} style={{ background: 'transparent', border: '1px solid rgba(255,45,85,0.4)', borderRadius: '8px', color: '#ff2d55', padding: '6px 14px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif" }}>
+          <button onClick={onLogout} style={{ background: 'transparent', border: '1px solid rgba(255,45,85,0.35)', borderRadius: '10px', color: '#ff2d55', padding: '7px 16px', cursor: 'pointer', fontSize: '12px', fontFamily: "'Poppins', sans-serif", fontWeight: '600', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,45,85,0.08)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             Déco
           </button>
         </div>
       </nav>
 
-      <HeroSlider movies={trending} onPlay={setPlayingMovie} />
+      <HeroSlider movies={trending} onPlay={setPlayingMovie} onInfo={setSelectedMovie} />
 
-      <div style={{ paddingTop: '2rem' }}>
+      <div style={{ paddingTop: '2.5rem' }}>
         <MovieRow title="🔥 Tendances" movies={trending} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
         <MovieRow title="⭐ Populaires" movies={popular} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
         <MovieRow title="🆕 Nouveautés" movies={newReleases} loading={loading} onMovieClick={setSelectedMovie} onPlayClick={setPlayingMovie} />
       </div>
-
-      {selectedMovie && (
-        <div onClick={() => setSelectedMovie(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#0f0f1a', borderRadius: '20px', padding: '2rem', maxWidth: '500px', width: '90%', border: '1px solid rgba(255,45,85,0.2)', boxShadow: '0 0 60px rgba(0,0,0,0.8)' }}>
-            {selectedMovie.cover_url && <img src={selectedMovie.cover_url} alt="" style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '12px', marginBottom: '1.5rem' }} />}
-            <h2 style={{ color: '#fff', marginBottom: '8px', fontSize: '20px', fontWeight: '800' }}>{selectedMovie.title}</h2>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#aaa', fontSize: '11px', padding: '3px 10px', borderRadius: '12px' }}>{selectedMovie.release_year}</span>
-              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#aaa', fontSize: '11px', padding: '3px 10px', borderRadius: '12px' }}>{selectedMovie.duration_min}min</span>
-              <span style={{ background: 'rgba(255,255,255,0.08)', color: '#aaa', fontSize: '11px', padding: '3px 10px', borderRadius: '12px' }}>{selectedMovie.type === 'series' ? 'Série' : 'Film'}</span>
-            </div>
-            <p style={{ color: '#888', fontSize: '13px', marginBottom: '1.5rem', lineHeight: 1.7 }}>{selectedMovie.description || 'Aucune description.'}</p>
-            {selectedMovie.video_url ? (
-              <button onClick={() => { setSelectedMovie(null); setPlayingMovie(selectedMovie) }}
-                style={{ width: '100%', padding: '13px', background: 'linear-gradient(135deg, #ff2d55, #ff6b35)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: '700', cursor: 'pointer', fontSize: '15px', fontFamily: "'Poppins', sans-serif", boxShadow: '0 4px 20px rgba(255,45,85,0.3)' }}>
-                ▶ Regarder maintenant
-              </button>
-            ) : (
-              <p style={{ color: '#444', fontSize: '13px', textAlign: 'center' }}>Vidéo non disponible</p>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
