@@ -118,9 +118,17 @@ function HeroSlider({ movies, onPlay, onInfo }) {
 
   useEffect(() => {
     if (movies.length <= 1) return
-    const timer = setInterval(() => goTo((current + 1) % movies.length), 7000)
+    const timer = setInterval(() => {
+      setCurrent(c => {
+        const next = (c + 1) % movies.length
+        setPrev(c)
+        setTransitioning(true)
+        setTimeout(() => { setPrev(null); setTransitioning(false) }, 600)
+        return next
+      })
+    }, 7000)
     return () => clearInterval(timer)
-  }, [movies, current])
+  }, [movies]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (movies.length === 0) return (
     <div style={{ height: '75vh', background: 'radial-gradient(ellipse at 30% 50%, #2a0010 0%, #0a0a0f 70%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
@@ -158,7 +166,7 @@ function HeroSlider({ movies, onPlay, onInfo }) {
       <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg, rgba(0,0,0,0.98) 25%, rgba(0,0,0,0.6) 55%, rgba(0,0,0,0.15) 100%)' }} />
       <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.3) 30%, transparent 60%)' }} />
 
-      <div style={{ position: 'relative', zIndex: 3, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px', opacity: transitioning ? 0 : 1, transition: 'opacity 0.4s ease', transform: transitioning ? 'translateY(10px)' : 'translateY(0)', }}>
+      <div style={{ position: 'relative', zIndex: 3, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px', opacity: transitioning ? 0 : 1, transition: 'opacity 0.4s ease', transform: transitioning ? 'translateY(10px)' : 'translateY(0)' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', width: 'fit-content' }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
           <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase' }}>À LA UNE</span>
