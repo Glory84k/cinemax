@@ -146,9 +146,9 @@ function HeroSlider({ movies, onPlay, onInfo }) {
   return (
     <div style={{ height: '75vh', position: 'relative', overflow: 'hidden' }}>
       {prev !== null && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: movies[prev]?.cover_url ? `url(${movies[prev].cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.65) saturate(1.1)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: (movies[prev]?.banner_url || movies[prev]?.cover_url) ? `url(${movies[prev]?.banner_url || movies[prev]?.cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.65) saturate(1.1)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
       )}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundImage: movie.cover_url ? `url(${movie.cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.65) saturate(1.2)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundImage: (movie.banner_url || movie.cover_url) ? `url(${movie.banner_url || movie.cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'brightness(0.65) saturate(1.2)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
       <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg, rgba(0,0,0,0.85) 25%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.05) 100%)' }} />
       <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.2) 30%, transparent 60%)' }} />
 
