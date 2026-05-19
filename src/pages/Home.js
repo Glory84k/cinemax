@@ -143,52 +143,156 @@ function HeroSlider({ movies, onPlay, onInfo }) {
   )
 
   const movie = movies[current]
-  return (
-    <div style={{ height: '75vh', position: 'relative', overflow: 'hidden' }}>
-      {prev !== null && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: (movies[prev]?.banner_url || movies[prev]?.cover_url) ? `url(${movies[prev]?.banner_url || movies[prev]?.cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.65) saturate(1.1)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
-      )}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, backgroundImage: (movie.banner_url || movie.cover_url) ? `url(${movie.banner_url || movie.cover_url})` : 'none', backgroundColor: '#1a0010', backgroundSize: 'cover', backgroundPosition: 'center top', filter: 'brightness(0.65) saturate(1.2)', opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease' }} />
-      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(105deg, rgba(0,0,0,0.85) 25%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.05) 100%)' }} />
-      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.2) 30%, transparent 60%)' }} />
+  const bgImage = movie.banner_url || movie.cover_url
 
-      <div style={{ position: 'relative', zIndex: 3, padding: '0 3rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: '80px', opacity: transitioning ? 0 : 1, transition: 'opacity 0.4s ease', transform: transitioning ? 'translateY(10px)' : 'translateY(0)' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', width: 'fit-content' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
+  return (
+    <div style={{ height: '80vh', position: 'relative', overflow: 'hidden' }}>
+
+      {/* ── Image précédente (fade out) ── */}
+      {prev !== null && movies[prev] && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          opacity: transitioning ? 0 : 1,
+          transition: 'opacity 0.6s ease',
+        }}>
+          <img
+            src={movies[prev].banner_url || movies[prev].cover_url}
+            alt=""
+            style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center center',
+              display: 'block',
+              filter: 'brightness(0.55) saturate(1.1)',
+            }}
+          />
+        </div>
+      )}
+
+      {/* ── Image courante (fade in) ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        opacity: transitioning ? 0 : 1,
+        transition: 'opacity 0.6s ease',
+      }}>
+        {bgImage ? (
+          <img
+            src={bgImage}
+            alt={movie.title}
+            style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center center', // ← clé : pas de zoom, centré
+              display: 'block',
+              filter: 'brightness(0.6) saturate(1.2)',
+            }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: '#1a0010' }} />
+        )}
+      </div>
+
+      {/* ── Gradients overlay ── */}
+      {/* Gauche → texte lisible */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(90deg, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.0) 75%)',
+      }} />
+      {/* Bas → fondu vers le fond de page */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 2,
+        background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.15) 28%, transparent 55%)',
+      }} />
+      {/* Haut → fondu navbar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: '180px', zIndex: 2,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 100%)',
+      }} />
+
+      {/* ── Contenu texte ── */}
+      <div style={{
+        position: 'relative', zIndex: 3,
+        padding: '0 3.5rem',
+        height: '100%',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        paddingTop: '80px',
+        maxWidth: '650px',
+        opacity: transitioning ? 0 : 1,
+        transform: transitioning ? 'translateY(12px)' : 'translateY(0)',
+        transition: 'opacity 0.4s ease, transform 0.4s ease',
+      }}>
+        {/* Badge À la une */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '18px', width: 'fit-content' }}>
+          <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
           <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase' }}>À LA UNE</span>
         </div>
-        <h2 style={{ color: '#fff', fontSize: 'clamp(32px, 5vw, 60px)', fontWeight: '900', margin: '0 0 16px', lineHeight: 1.0, maxWidth: '600px', letterSpacing: '-1.5px', textShadow: '0 4px 30px rgba(0,0,0,0.8)' }}>{movie.title}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          {movie.release_year && <span style={{ color: '#ccc', fontSize: '13px', fontWeight: '500' }}>{movie.release_year}</span>}
-          {movie.duration_min && <><span style={{ color: '#555' }}>•</span><span style={{ color: '#ccc', fontSize: '13px' }}>{movie.duration_min} min</span></>}
-          {movie.category && <><span style={{ color: '#555' }}>•</span><span style={{ background: 'rgba(255,45,85,0.15)', color: '#ff6b8a', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: '1px solid rgba(255,45,85,0.25)', fontWeight: '600' }}>{movie.category}</span></>}
-          <span style={{ background: movie.type === 'series' ? 'rgba(99,179,237,0.15)' : 'rgba(255,200,60,0.15)', color: movie.type === 'series' ? '#63b3ed' : '#f6c90e', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: `1px solid ${movie.type === 'series' ? 'rgba(99,179,237,0.2)' : 'rgba(246,201,14,0.2)'}`, fontWeight: '600' }}>
+
+        {/* Titre */}
+        <h2 style={{
+          color: '#fff',
+          fontSize: 'clamp(30px, 4.5vw, 58px)',
+          fontWeight: '900',
+          margin: '0 0 14px',
+          lineHeight: 1.05,
+          letterSpacing: '-1.5px',
+          textShadow: '0 2px 20px rgba(0,0,0,0.6)',
+        }}>{movie.title}</h2>
+
+        {/* Meta */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+          {movie.release_year && <span style={{ color: '#ddd', fontSize: '13px', fontWeight: '600' }}>{movie.release_year}</span>}
+          {movie.duration_min && <><span style={{ color: '#555' }}>•</span><span style={{ color: '#ddd', fontSize: '13px' }}>{movie.duration_min} min</span></>}
+          {movie.category && (
+            <><span style={{ color: '#555' }}>•</span>
+            <span style={{ background: 'rgba(255,45,85,0.15)', color: '#ff6b8a', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: '1px solid rgba(255,45,85,0.25)', fontWeight: '600' }}>{movie.category}</span></>
+          )}
+          <span style={{
+            background: movie.type === 'series' ? 'rgba(99,179,237,0.15)' : 'rgba(255,200,60,0.15)',
+            color: movie.type === 'series' ? '#63b3ed' : '#f6c90e',
+            fontSize: '11px', padding: '3px 12px', borderRadius: '20px',
+            border: `1px solid ${movie.type === 'series' ? 'rgba(99,179,237,0.2)' : 'rgba(246,201,14,0.2)'}`,
+            fontWeight: '600'
+          }}>
             {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
           </span>
         </div>
-        <p style={{ color: '#ccc', fontSize: '15px', maxWidth: '500px', marginBottom: '2.5rem', lineHeight: 1.7 }}>{movie.description?.slice(0, 150)}{movie.description?.length > 150 ? '...' : ''}</p>
+
+        {/* Description */}
+        {movie.description && (
+          <p style={{ color: '#bbb', fontSize: '14px', maxWidth: '480px', marginBottom: '2.2rem', lineHeight: 1.75 }}>
+            {movie.description.slice(0, 160)}{movie.description.length > 160 ? '...' : ''}
+          </p>
+        )}
+
+        {/* Boutons */}
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
           {movie.video_url && (
             <button onClick={() => onPlay(movie)}
-              style={{ background: 'linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%)', border: 'none', borderRadius: '12px', color: '#fff', padding: '14px 32px', fontSize: '15px', cursor: 'pointer', fontWeight: '800', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.45)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'transform 0.2s, box-shadow 0.2s' }}
+              style={{ background: 'linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%)', border: 'none', borderRadius: '12px', color: '#fff', padding: '13px 30px', fontSize: '15px', cursor: 'pointer', fontWeight: '800', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.45)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'transform 0.2s, box-shadow 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,45,85,0.6)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(255,45,85,0.45)' }}>
-              <span>▶</span> Regarder
+              ▶ Regarder
             </button>
           )}
           <button onClick={() => onInfo(movie)}
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', padding: '14px 28px', fontSize: '15px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", fontWeight: '600', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: '12px', color: '#fff', padding: '13px 26px', fontSize: '15px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", fontWeight: '600', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}>
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)' }}>
             ℹ️ Plus d'infos
           </button>
         </div>
       </div>
 
+      {/* ── Indicateurs de slide ── */}
       {movies.length > 1 && (
-        <div style={{ position: 'absolute', bottom: '28px', left: '3rem', display: 'flex', gap: '8px', zIndex: 4 }}>
+        <div style={{ position: 'absolute', bottom: '32px', left: '3.5rem', display: 'flex', gap: '8px', zIndex: 4 }}>
           {movies.map((_, i) => (
-            <div key={i} onClick={() => goTo(i)} style={{ width: i === current ? '32px' : '8px', height: '4px', borderRadius: '2px', background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: i === current ? '0 0 8px rgba(255,45,85,0.6)' : 'none' }} />
+            <div key={i} onClick={() => goTo(i)} style={{
+              width: i === current ? '32px' : '8px', height: '4px', borderRadius: '2px',
+              background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.25)',
+              cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: i === current ? '0 0 8px rgba(255,45,85,0.6)' : 'none'
+            }} />
           ))}
         </div>
       )}
@@ -287,7 +391,7 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
     const load = async () => {
       try {
         const [featuredRes, t, p, n] = await Promise.all([
-          supabase.from('movies').select('*').eq('featured', true),
+          supabase.from('movies').select('*').eq('featured', true).order('featured_order', { ascending: true }),
           getTrending(),
           getPopular(),
           getNewReleases()
@@ -307,9 +411,7 @@ export default function Home({ user, profile, onLogout, onAdmin, onProfile }) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
   return (
     <div ref={topRef} style={{ minHeight: '100vh', background: '#0a0a0f', fontFamily: "'Poppins', sans-serif" }}>
