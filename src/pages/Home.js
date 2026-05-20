@@ -129,7 +129,7 @@ function HeroSlider({ movies, onPlay, onInfo }) {
   }, [movies])
 
   if (movies.length === 0) return (
-    <div style={{ height: '75vh', background: 'radial-gradient(ellipse at 30% 50%, #2a0010 0%, #0a0a0f 70%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
+    <div style={{ height: '85vh', background: 'radial-gradient(ellipse at 30% 50%, #2a0010 0%, #0a0a0f 70%)', display: 'flex', alignItems: 'center', paddingLeft: '3rem' }}>
       <div style={{ paddingTop: '80px' }}>
         <p style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '20px' }}>🎬 STREAMING</p>
         <h2 style={{ color: '#fff', fontSize: 'clamp(36px, 6vw, 64px)', fontWeight: '900', margin: '0 0 20px', lineHeight: 1.0, letterSpacing: '-2px' }}>Bienvenue sur<br /><span style={{ color: '#ff2d55' }}>Cinemax</span></h2>
@@ -142,122 +142,110 @@ function HeroSlider({ movies, onPlay, onInfo }) {
   const bgImage = movie.banner_url || movie.cover_url
 
   return (
-    <div style={{ position: 'relative', width: '100%', background: '#000', overflow: 'hidden' }}>
-      {/* Ratio 16:9 strict */}
-      <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '85vh', overflow: 'hidden', background: '#000' }}>
 
-        {/* Fond flouté (remplit les bords si l'image ne couvre pas) */}
-        {bgImage && (
-          <div style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            backgroundImage: `url(${bgImage})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            filter: 'blur(30px) brightness(0.2) saturate(1.5)',
-            transform: 'scale(1.08)',
-          }} />
-        )}
+      {/* Image précédente — fade out */}
+      {prev !== null && movies[prev] && (
+        <img
+          src={movies[prev].banner_url || movies[prev].cover_url}
+          alt=""
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center center',
+            zIndex: 0,
+            opacity: transitioning ? 0 : 1,
+            transition: 'opacity 0.6s ease',
+            filter: 'brightness(0.55) saturate(1.1)',
+          }}
+        />
+      )}
 
-        {/* Image précédente fade out */}
-        {prev !== null && movies[prev] && (
-          <div style={{ position: 'absolute', inset: 0, zIndex: 1, opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img
-              src={movies[prev].banner_url || movies[prev].cover_url}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', display: 'block', filter: 'brightness(0.55)' }}
-            />
-          </div>
-        )}
+      {/* Image courante */}
+      {bgImage && (
+        <img
+          src={bgImage}
+          alt={movie.title}
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center center', // ← centré, pas top
+            zIndex: 1,
+            opacity: transitioning ? 0 : 1,
+            transition: 'opacity 0.6s ease',
+            filter: 'brightness(0.65) saturate(1.2)',
+          }}
+        />
+      )}
 
-        {/* Image courante — objectFit contain = image entière visible */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 2, opacity: transitioning ? 0 : 1, transition: 'opacity 0.6s ease', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {bgImage ? (
-            <img
-              src={bgImage}
-              alt={movie.title}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',         // ← image complète, aucun crop
-                objectPosition: 'center',
-                display: 'block',
-                filter: 'brightness(0.78) saturate(1.1)',
-              }}
-            />
-          ) : (
-            <div style={{ width: '100%', height: '100%', background: '#1a0010' }} />
-          )}
+      {/* Gradient gauche */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(100deg, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.05) 70%)' }} />
+      {/* Gradient bas */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 2, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.15) 28%, transparent 55%)' }} />
+      {/* Gradient haut navbar */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '180px', zIndex: 2, background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)' }} />
+
+      {/* Contenu */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 3,
+        padding: '0 3.5rem',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        paddingTop: '80px',
+        maxWidth: '620px',
+        opacity: transitioning ? 0 : 1,
+        transform: transitioning ? 'translateY(12px)' : 'translateY(0)',
+        transition: 'opacity 0.4s ease, transform 0.4s ease',
+      }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '18px', width: 'fit-content' }}>
+          <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
+          <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase' }}>À LA UNE</span>
         </div>
 
-        {/* Gradient gauche pour lisibilité texte */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 3, background: 'linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0.0) 65%)' }} />
-        {/* Gradient bas */}
-        <div style={{ position: 'absolute', inset: 0, zIndex: 3, background: 'linear-gradient(to top, rgba(10,10,15,1) 0%, rgba(10,10,15,0.0) 22%)' }} />
-        {/* Gradient haut navbar */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '140px', zIndex: 3, background: 'linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%)' }} />
+        <h2 style={{ color: '#fff', fontSize: 'clamp(28px, 4vw, 58px)', fontWeight: '900', margin: '0 0 14px', lineHeight: 1.05, letterSpacing: '-1.5px', textShadow: '0 4px 30px rgba(0,0,0,0.8)' }}>
+          {movie.title}
+        </h2>
 
-        {/* Texte */}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 4,
-          padding: '0 3.5rem',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          paddingTop: '60px',
-          maxWidth: '580px',
-          opacity: transitioning ? 0 : 1,
-          transform: transitioning ? 'translateY(12px)' : 'translateY(0)',
-          transition: 'opacity 0.4s ease, transform 0.4s ease',
-        }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '14px', width: 'fit-content' }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#ff2d55', animation: 'pulse 2s infinite', boxShadow: '0 0 8px #ff2d55' }} />
-            <span style={{ color: '#ff2d55', fontSize: '11px', fontWeight: '800', letterSpacing: '3px', textTransform: 'uppercase' }}>À LA UNE</span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+          {movie.release_year && <span style={{ color: '#ccc', fontSize: '13px', fontWeight: '600' }}>{movie.release_year}</span>}
+          {movie.duration_min && <><span style={{ color: '#555' }}>•</span><span style={{ color: '#ccc', fontSize: '13px' }}>{movie.duration_min} min</span></>}
+          {movie.category && <><span style={{ color: '#555' }}>•</span><span style={{ background: 'rgba(255,45,85,0.15)', color: '#ff6b8a', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: '1px solid rgba(255,45,85,0.25)', fontWeight: '600' }}>{movie.category}</span></>}
+          <span style={{ background: movie.type === 'series' ? 'rgba(99,179,237,0.15)' : 'rgba(255,200,60,0.15)', color: movie.type === 'series' ? '#63b3ed' : '#f6c90e', fontSize: '11px', padding: '3px 12px', borderRadius: '20px', border: `1px solid ${movie.type === 'series' ? 'rgba(99,179,237,0.2)' : 'rgba(246,201,14,0.2)'}`, fontWeight: '600' }}>
+            {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
+          </span>
+        </div>
 
-          <h2 style={{ color: '#fff', fontSize: 'clamp(22px, 3vw, 48px)', fontWeight: '900', margin: '0 0 10px', lineHeight: 1.05, letterSpacing: '-1px', textShadow: '0 2px 20px rgba(0,0,0,0.9)' }}>
-            {movie.title}
-          </h2>
+        {movie.description && (
+          <p style={{ color: '#ccc', fontSize: '14px', maxWidth: '480px', marginBottom: '2.2rem', lineHeight: 1.75 }}>
+            {movie.description.slice(0, 150)}{movie.description.length > 150 ? '...' : ''}
+          </p>
+        )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-            {movie.release_year && <span style={{ color: '#ddd', fontSize: '12px', fontWeight: '600' }}>{movie.release_year}</span>}
-            {movie.duration_min && <><span style={{ color: '#555' }}>•</span><span style={{ color: '#ddd', fontSize: '12px' }}>{movie.duration_min} min</span></>}
-            {movie.category && <><span style={{ color: '#555' }}>•</span><span style={{ background: 'rgba(255,45,85,0.15)', color: '#ff6b8a', fontSize: '11px', padding: '2px 10px', borderRadius: '20px', border: '1px solid rgba(255,45,85,0.25)', fontWeight: '600' }}>{movie.category}</span></>}
-            <span style={{ background: movie.type === 'series' ? 'rgba(99,179,237,0.15)' : 'rgba(255,200,60,0.15)', color: movie.type === 'series' ? '#63b3ed' : '#f6c90e', fontSize: '11px', padding: '2px 10px', borderRadius: '20px', border: `1px solid ${movie.type === 'series' ? 'rgba(99,179,237,0.2)' : 'rgba(246,201,14,0.2)'}`, fontWeight: '600' }}>
-              {movie.type === 'series' ? 'SÉRIE' : 'FILM'}
-            </span>
-          </div>
-
-          {movie.description && (
-            <p style={{ color: '#bbb', fontSize: '13px', maxWidth: '400px', marginBottom: '1.6rem', lineHeight: 1.7 }}>
-              {movie.description.slice(0, 130)}{movie.description.length > 130 ? '...' : ''}
-            </p>
-          )}
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            {movie.video_url && (
-              <button onClick={() => onPlay(movie)}
-                style={{ background: 'linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%)', border: 'none', borderRadius: '10px', color: '#fff', padding: '11px 26px', fontSize: '14px', cursor: 'pointer', fontWeight: '800', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.45)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'transform 0.2s, box-shadow 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,45,85,0.6)' }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(255,45,85,0.45)' }}>
-                ▶ Regarder
-              </button>
-            )}
-            <button onClick={() => onInfo(movie)}
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: '10px', color: '#fff', padding: '11px 22px', fontSize: '14px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", fontWeight: '600', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)' }}>
-              ℹ️ Plus d'infos
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          {movie.video_url && (
+            <button onClick={() => onPlay(movie)}
+              style={{ background: 'linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%)', border: 'none', borderRadius: '12px', color: '#fff', padding: '14px 32px', fontSize: '15px', cursor: 'pointer', fontWeight: '800', fontFamily: "'Poppins', sans-serif", boxShadow: '0 6px 25px rgba(255,45,85,0.45)', display: 'flex', alignItems: 'center', gap: '10px', transition: 'transform 0.2s, box-shadow 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(255,45,85,0.6)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 6px 25px rgba(255,45,85,0.45)' }}>
+              ▶ Regarder
             </button>
-          </div>
+          )}
+          <button onClick={() => onInfo(movie)}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '12px', color: '#fff', padding: '14px 28px', fontSize: '15px', cursor: 'pointer', fontFamily: "'Poppins', sans-serif", fontWeight: '600', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.18)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}>
+            ℹ️ Plus d'infos
+          </button>
         </div>
-
-        {/* Indicateurs */}
-        {movies.length > 1 && (
-          <div style={{ position: 'absolute', bottom: '16px', left: '3.5rem', display: 'flex', gap: '8px', zIndex: 5 }}>
-            {movies.map((_, i) => (
-              <div key={i} onClick={() => goTo(i)} style={{ width: i === current ? '32px' : '8px', height: '4px', borderRadius: '2px', background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: i === current ? '0 0 8px rgba(255,45,85,0.6)' : 'none' }} />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Indicateurs */}
+      {movies.length > 1 && (
+        <div style={{ position: 'absolute', bottom: '28px', left: '3.5rem', display: 'flex', gap: '8px', zIndex: 4 }}>
+          {movies.map((_, i) => (
+            <div key={i} onClick={() => goTo(i)} style={{ width: i === current ? '32px' : '8px', height: '4px', borderRadius: '2px', background: i === current ? '#ff2d55' : 'rgba(255,255,255,0.25)', cursor: 'pointer', transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)', boxShadow: i === current ? '0 0 8px rgba(255,45,85,0.6)' : 'none' }} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
